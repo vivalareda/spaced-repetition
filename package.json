@@ -1,0 +1,26 @@
+{
+  "name": "spaced-repetition-monorepo",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "check": "biome check --write .",
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev:native": "turbo -F native dev",
+    "dev:web": "turbo -F web dev",
+    "dev:server": "turbo -F @spaced-repetition-monorepo/backend dev",
+    "dev:setup": "turbo -F @spaced-repetition-monorepo/backend dev:setup"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "turbo": "^2.5.4",
+    "@biomejs/biome": "2.2.5",
+    "ultracite": "5.6.2"
+  },
+  "packageManager": "pnpm@10.18.1"
+}
