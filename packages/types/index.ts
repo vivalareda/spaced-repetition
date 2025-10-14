@@ -1,4 +1,4 @@
-import type { Doc } from "@spaced-repetition-monorepo-2/backend/convex/_generated/dataModel";
+import type { Doc } from "@spaced-repetition-monorepo/backend/convex/_generated/dataModel";
 
 export type Card = Doc<"cards">;
 export type Deck = Doc<"decks">;
