@@ -19,10 +19,20 @@
       "!**/.alchemy",
       "!**/.svelte-kit",
       "!**/wrangler.jsonc",
-      "!**/.source"
+      "!**/.source",
+      "!**/apps/native",
+      "!**/src/components/ui/*",
+      "!**/apps/web/src/index.css",
+      "!**/apps/web/src/routeTree.gen.ts",
+      "!**/packages/backend/convex/_generated/*"
     ]
   },
-  "extends": [
-    "ultracite"
-  ]
+  "linter": {
+    "rules": {
+      "performance": {
+        "noImgElement": "off"
+      }
+    }
+  },
+  "extends": ["ultracite"]
 }

@@ -16,13 +16,13 @@ function HeroPage() {
   const { onOpen } = useModalStore();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { isAuthentrcated } = useConvexAuth();
+  const { isAuthenticated } = useConvexAuth();
 
-  // useEffect(() => {
-  //   if (isAuthenticated) {
-  //     navigate({ to: "/" });
-  //   }
-  // }, [isAuthenticated, navigate]);
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate({ to: "/" });
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-main/5 to-secondary-background/20">

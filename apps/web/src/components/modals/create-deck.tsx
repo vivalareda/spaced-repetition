@@ -39,7 +39,10 @@ export function CreateDeckModal() {
 
   const handleSubmit = () => {
     createDeck(formData);
-    onSubmit ? onSubmit() : navigate({ to: "/" });
+    if (onSubmit) {
+      onSubmit();
+    }
+    navigate({ to: "/" });
     closeModal();
   };
 

@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/performance/noImgElement: <explanation> */
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useConvexAuth } from "convex/react";
 import { Globe } from "lucide-react";

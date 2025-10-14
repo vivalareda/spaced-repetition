@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - packages/*
+
 catalog:
   convex: ^1.27.0
-  typescript: ^5.7.2
+  typescript: 5.8.3

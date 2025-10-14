@@ -57,7 +57,10 @@ export function CreateCardModal() {
 
   const handleSubmit = () => {
     createCard(formData);
-    onSubmit ? onSubmit() : navigate({ to: "/" });
+    if (onSubmit) {
+      onSubmit();
+    }
+    navigate({ to: "/" });
     closeModal();
   };
 
