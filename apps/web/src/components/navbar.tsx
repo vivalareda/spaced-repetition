@@ -1,3 +1,4 @@
+import { useClerk } from "@clerk/clerk-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useConvexAuth } from "convex/react";
 import { Globe } from "lucide-react";
@@ -43,6 +44,11 @@ function AuthenticatedNav({
   onHomeClick: () => void;
 }) {
   const { t } = useTranslation();
+  const { signOut } = useClerk();
+
+  const handleSignOut = () => {
+    signOut();
+  };
 
   return (
     <div className="sticky top-0 z-10 flex h-24 w-full items-center bg-white px-6 shadow-lg">
@@ -68,6 +74,9 @@ function AuthenticatedNav({
         </Button>
         <Button onClick={onDashboardClick} size="sm">
           {t("navbar.dashboard")}
+        </Button>
+        <Button onClick={handleSignOut} size="sm" variant="neutral">
+          {t("navbar.signOut")}
         </Button>
       </div>
     </div>

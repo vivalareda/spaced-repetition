@@ -1,4 +1,3 @@
-import type { Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
 
@@ -44,9 +43,7 @@ export async function getCurrentUser(ctx: QueryCtx | MutationCtx) {
 /**
  * Helper function to get current user ID
  */
-export async function getCurrentUserId(
-  ctx: QueryCtx | MutationCtx
-): Promise<Id<"users">> {
+export async function getCurrentUserId(ctx: QueryCtx | MutationCtx) {
   const user = await getCurrentUser(ctx);
   return user._id;
 }

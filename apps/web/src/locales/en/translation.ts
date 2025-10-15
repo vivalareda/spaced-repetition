@@ -6,6 +6,7 @@ export default {
     dashboard: "Dashboard",
     signIn: "Sign In",
     signUp: "Sign Up",
+    signOut: "Sign Out",
     loading: "Loading...",
   },
   hero: {

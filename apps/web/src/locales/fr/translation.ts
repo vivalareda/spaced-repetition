@@ -6,6 +6,7 @@ export default {
     dashboard: "Tableau de bord",
     signIn: "Se connecter",
     signUp: "S'inscrire",
+    signOut: "Se déconnecter",
     loading: "Chargement...",
   },
   hero: {

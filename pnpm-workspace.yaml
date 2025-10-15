@@ -3,5 +3,5 @@ packages:
   - packages/*
 
 catalog:
-  convex: ^1.27.0
+  convex: 1.27.5
   typescript: 5.8.3

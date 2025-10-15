@@ -15,6 +15,7 @@ type RootContext = {
   queryClient: QueryClient;
   isAuthenticated: boolean;
   isLoading: boolean | undefined;
+  userSynced: boolean;
 };
 
 const RootLayout = () => {
@@ -29,11 +30,12 @@ const RootLayout = () => {
   }, [isAuthenticated, isLoading, navigate]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      upsertUser().catch(() => {
-        // Handle user creation error silently
-      });
-    }
+    const run = async () => {
+      if (isAuthenticated) {
+        await upsertUser();
+      }
+    };
+    run();
   }, [isAuthenticated, upsertUser]);
 
   if (isLoading) {

@@ -38,7 +38,7 @@ function ReviewPage() {
       cardId,
       difficulty,
     });
-    if (carouselApi.canScrollNext()) {
+    if (carouselApi?.canScrollNext()) {
       carouselApi.scrollNext();
     }
   };

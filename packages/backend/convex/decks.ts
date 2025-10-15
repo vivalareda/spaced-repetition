@@ -4,7 +4,7 @@ import { getCurrentUserId } from "./users";
 
 export const get = query({
   handler: async (ctx) => {
-    const userId = await getCurrentUserId(ctx);
+    const userId = await getCurrentUserId(ctx, "decks.get");
 
     return await ctx.db
       .query("decks")
@@ -19,7 +19,7 @@ export const createDeck = mutation({
     deckDescription: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await getCurrentUserId(ctx);
+    const userId = await getCurrentUserId(ctx, "decks.createDeck");
 
     const userDecks = await ctx.db
       .query("decks")
@@ -48,7 +48,7 @@ export const deleteDeck = mutation({
     deckId: v.id("decks"),
   },
   handler: async (ctx, args) => {
-    const userId = await getCurrentUserId(ctx);
+    const userId = await getCurrentUserId(ctx, "decks.deleteDeck");
 
     const deck = await ctx.db.get(args.deckId);
     if (!deck) {
@@ -77,7 +77,7 @@ export const deleteDeck = mutation({
 
 export const getUserDecks = query({
   handler: async (ctx) => {
-    const userId = await getCurrentUserId(ctx);
+    const userId = await getCurrentUserId(ctx, "decks.getUserDecks");
 
     return await ctx.db
       .query("decks")
@@ -88,7 +88,7 @@ export const getUserDecks = query({
 
 export const getUserDecksNames = query({
   handler: async (ctx) => {
-    const userId = await getCurrentUserId(ctx);
+    const userId = await getCurrentUserId(ctx, "decks.getUserDecksNames");
 
     const decks = await ctx.db
       .query("decks")
@@ -101,7 +101,7 @@ export const getUserDecksNames = query({
 
 export const getDecksWithCardCount = query({
   handler: async (ctx) => {
-    const userId = await getCurrentUserId(ctx);
+    const userId = await getCurrentUserId(ctx, "decks.getDecksWithCardCount");
 
     const decks = await ctx.db
       .query("decks")

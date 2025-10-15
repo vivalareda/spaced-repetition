@@ -1,39 +1,46 @@
-import { convexQuery } from "@convex-dev/react-query";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
-import { useQuery } from "@tanstack/react-query";
-import { useConvexAuth } from "convex/react";
+import { useConvexAuth, useQuery } from "convex/react";
 
 export function useUserData() {
   const { isAuthenticated } = useConvexAuth();
 
-  const userCards = useQuery({
-    ...convexQuery(api.cards.get, {}),
-    staleTime: 300_000,
-    enabled: isAuthenticated,
-  });
+  const currentUser = useQuery(
+    api.users.current,
+    isAuthenticated ? {} : "skip"
+  );
 
-  const userDecks = useQuery({
-    ...convexQuery(api.decks.getUserDecks, {}),
-    staleTime: 30_000,
-    enabled: isAuthenticated,
-  });
+  const userSynced = !!currentUser;
+  const shouldRun = isAuthenticated && userSynced;
 
-  const cardsDueToday = useQuery({
-    ...convexQuery(api.cards.getDueToday, {}),
-    staleTime: 30_000,
-    enabled: isAuthenticated,
-  });
+  const userCards = useQuery(api.cards.get, shouldRun ? {} : "skip");
+
+  const userDecks = useQuery(api.decks.getUserDecks, shouldRun ? {} : "skip");
+
+  const cardsDueToday = useQuery(
+    api.cards.getDueToday,
+    shouldRun ? {} : "skip"
+  );
+
+  const userDecksWithCardCount = useQuery(
+    api.decks.getDecksWithCardCount,
+    shouldRun ? {} : "skip"
+  );
+
+  const isLoading =
+    (userCards === undefined ||
+      userDecks === undefined ||
+      cardsDueToday === undefined) &&
+    isAuthenticated &&
+    userSynced;
 
   return {
-    userCards: userCards.data || [],
-    userDecks: userDecks.data || [],
-    cardsDueToday: cardsDueToday.data || [],
-    isLoading:
-      (userCards.isLoading || userDecks.isLoading || cardsDueToday.isLoading) &&
-      !userCards.data &&
-      !userDecks.data &&
-      !cardsDueToday.data,
+    userCards: userCards || [],
+    userDecks: userDecks || [],
+    userDecksWithCardCount: userDecksWithCardCount || [],
+    cardsDueToday: cardsDueToday || [],
+    userSynced,
+    isLoading,
     isAuthenticated,
-    isEmpty: userDecks.data?.length === 0 && userCards.data?.length === 0,
+    isEmpty: userDecks?.length === 0 && userCards?.length === 0,
   };
 }

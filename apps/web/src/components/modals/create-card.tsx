@@ -1,9 +1,7 @@
-import { convexQuery } from "@convex-dev/react-query";
 import { MINIMUM_DEBOUNCE_TIME } from "@shared/types";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
-import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { type ChangeEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -29,10 +27,11 @@ export function CreateCardModal() {
   const createCard = useMutation(api.cards.createCard);
   const [isCodeQuestion, setIsCodeQuestion] = useState(false);
 
-  const { data: userDecks } = useQuery({
-    ...convexQuery(api.decks.getUserDecksNames, {}),
-    enabled: isModalOpen && shouldFetchDecks,
-  });
+  const shouldQuery = isModalOpen && shouldFetchDecks;
+  const userDecks = useQuery(
+    api.decks.getUserDecksNames,
+    shouldQuery ? {} : "skip"
+  );
 
   useEffect(() => {
     if (isModalOpen) {

@@ -17,14 +17,13 @@ import { useSessionStore } from "@/hooks/use-session-store";
 
 export function ChooseDeckModal() {
   const { isOpen, type, onClose } = useModalStore();
+  const isModalOpen = isOpen && type === "choose-deck";
   const { startSession } = useSessionStore();
   const navigate = useNavigate();
   const { isAuthenticated } = useConvexAuth();
   const [selectedDeckId, setSelectedDeckId] = useState<DeckType["_id"] | null>(
     null
   );
-
-  const isModalOpen = isOpen && type === "choose-deck";
 
   const cardsInSelectedDeck = useQuery(
     api.cards.getByDeckId,

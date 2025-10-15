@@ -1,8 +1,8 @@
 import { convexQuery } from "@convex-dev/react-query";
 import type { Card as CardType, Deck as DeckType } from "@shared/types";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
-import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery } from "convex/react";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useMutation } from "convex/react";
 import { BookOpen, CircleQuestionMark } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -22,20 +22,22 @@ export const Route = createFileRoute("/dashboard")({
   component: RouteComponent,
   loader: async ({ context }) => {
     if (!context.isAuthenticated) {
-      return;
+      throw redirect({ to: "/hero" });
     }
-    await context.queryClient.prefetchQuery(
-      convexQuery(api.decks.getDecksWithCardCount, {})
-    );
+
+    if (context.userSynced) {
+      await context.queryClient.prefetchQuery(
+        convexQuery(api.decks.getDecksWithCardCount, {})
+      );
+    }
   },
 });
 
 function RouteComponent() {
   const { t } = useTranslation();
   const { onOpen } = useModalStore();
-  const { userCards } = useUserData();
+  const { userCards, userDecksWithCardCount } = useUserData();
 
-  const decksWithCardCount = useQuery(api.decks.getDecksWithCardCount);
   const deleteDeck = useMutation(api.decks.deleteDeck);
   const deleteCard = useMutation(api.cards.deleteCard);
 
@@ -43,7 +45,7 @@ function RouteComponent() {
     null
   );
 
-  if (decksWithCardCount === undefined || userCards === undefined) {
+  if (userDecksWithCardCount === undefined || userCards === undefined) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <Card className="w-full max-w-md border-border/60 backdrop-blur">
@@ -130,7 +132,7 @@ function RouteComponent() {
           <CardDescription>{t("dashboard.manageDecks")}</CardDescription>
         </CardHeader>
         <CardContent>
-          {decksWithCardCount.length === 0 ? (
+          {userDecksWithCardCount.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">
               <BookOpen className="mx-auto mb-4 h-12 w-12 opacity-50" />
               <p>{t("dashboard.noDecks")}</p>
@@ -138,7 +140,7 @@ function RouteComponent() {
             </div>
           ) : (
             <div className="space-y-3">
-              {decksWithCardCount.map((deck) => (
+              {userDecksWithCardCount.map((deck) => (
                 <Deck
                   cards={getCardsForDeck(deck._id)}
                   deck={deck}

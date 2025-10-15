@@ -4,6 +4,8 @@ import { v } from "convex/values";
 export default defineSchema({
   users: defineTable({
     clerkId: v.string(),
+    email: v.optional(v.string()),
+    apiKey: v.optional(v.string()),
   }).index("by_clerk_id", ["clerkId"]),
 
   cards: defineTable({
