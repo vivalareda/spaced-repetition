@@ -69,6 +69,7 @@ export const upsertFromClerk = mutation({
     // Create new user with just the clerkId
     const userId = await ctx.db.insert("users", {
       clerkId: identity.subject,
+      email: identity.email,
     });
 
     return userId;

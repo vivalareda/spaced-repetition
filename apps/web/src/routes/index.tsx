@@ -1,8 +1,7 @@
 import { convexQuery } from "@convex-dev/react-query";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { BookOpen, CalendarDays, ListTodo } from "lucide-react";
-import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Loading } from "@/components/dashboard/loading";
 import { Button } from "@/components/ui/button";
@@ -24,6 +23,11 @@ const EVENING_HOUR_THRESHOLD = 18;
 
 export const Route = createFileRoute("/")({
   component: Index,
+  beforeLoad: ({ context }) => {
+    if (!context.isAuthenticated) {
+      throw redirect({ to: "/hero" });
+    }
+  },
   loader: async ({ context }) => {
     if (!context.isAuthenticated) {
       return;
@@ -40,31 +44,11 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { t } = useTranslation();
-  const {
-    userCards,
-    userDecks,
-    cardsDueToday,
-    isLoading,
-    isEmpty,
-    isAuthenticated,
-  } = useUserData();
+  const { userCards, userDecks, cardsDueToday, isLoading, isEmpty } =
+    useUserData();
   const { onOpen } = useModalStore();
   const { startSession } = useSessionStore();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate({ to: "/" });
-    }
-  }, [isAuthenticated, navigate]);
-
-  useEffect(() => {
-    if (userDecks?.length === 0 && userCards?.length === 0) {
-      navigate({
-        to: "/",
-      });
-    }
-  }, [userCards, userDecks, navigate]);
 
   if (isLoading) {
     return <Loading />;
