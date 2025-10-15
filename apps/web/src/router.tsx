@@ -12,6 +12,7 @@ import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { PostHogProvider } from "posthog-js/react";
 import ReactDOM from "react-dom/client";
 import { I18nextProvider } from "react-i18next";
+import { ConvexUserSync } from "./components/convex-user-sync";
 import { useUserData } from "./hooks/use-user-data";
 import i18n from "./i18n";
 import { routeTree } from "./routeTree.gen";

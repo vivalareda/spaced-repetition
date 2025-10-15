@@ -29,16 +29,17 @@ export const Route = createFileRoute("/")({
     }
   },
   loader: async ({ context }) => {
-    if (!context.isAuthenticated) {
-      return;
+    if (context.isAuthenticated && context.userSynced) {
+      await Promise.all([
+        context.queryClient.prefetchQuery(convexQuery(api.cards.get, {})),
+        context.queryClient.prefetchQuery(
+          convexQuery(api.decks.getUserDecks, {})
+        ),
+        context.queryClient.prefetchQuery(
+          convexQuery(api.cards.getDueToday, {})
+        ),
+      ]);
     }
-    await Promise.all([
-      context.queryClient.prefetchQuery(convexQuery(api.cards.get, {})),
-      context.queryClient.prefetchQuery(
-        convexQuery(api.decks.getUserDecks, {})
-      ),
-      context.queryClient.prefetchQuery(convexQuery(api.cards.getDueToday, {})),
-    ]);
   },
 });
 

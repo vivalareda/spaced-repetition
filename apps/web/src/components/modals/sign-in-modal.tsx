@@ -29,7 +29,7 @@ export function SignInModal() {
                 card: "shadow-none",
               },
             }}
-            fallbackRedirectUrl={"/dashboard"}
+            fallbackRedirectUrl={"/"}
             routing="hash"
             signUpUrl="#"
           />
