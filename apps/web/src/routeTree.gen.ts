@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ReviewRouteImport } from './routes/review'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as NewRouteImport } from './routes/new'
 import { Route as HeroRouteImport } from './routes/hero'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -18,6 +19,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const ReviewRoute = ReviewRouteImport.update({
   id: '/review',
   path: '/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NewRoute = NewRouteImport.update({
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/hero': typeof HeroRoute
   '/new': typeof NewRoute
+  '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/hero': typeof HeroRoute
   '/new': typeof NewRoute
+  '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,22 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/hero': typeof HeroRoute
   '/new': typeof NewRoute
+  '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/hero' | '/new' | '/review'
+  fullPaths: '/' | '/dashboard' | '/hero' | '/new' | '/privacy' | '/review'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/hero' | '/new' | '/review'
-  id: '__root__' | '/' | '/dashboard' | '/hero' | '/new' | '/review'
+  to: '/' | '/dashboard' | '/hero' | '/new' | '/privacy' | '/review'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/hero'
+    | '/new'
+    | '/privacy'
+    | '/review'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +92,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   HeroRoute: typeof HeroRoute
   NewRoute: typeof NewRoute
+  PrivacyRoute: typeof PrivacyRoute
   ReviewRoute: typeof ReviewRoute
 }
 
@@ -86,6 +103,13 @@ declare module '@tanstack/react-router' {
       path: '/review'
       fullPath: '/review'
       preLoaderRoute: typeof ReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/new': {
@@ -124,6 +148,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   HeroRoute: HeroRoute,
   NewRoute: NewRoute,
+  PrivacyRoute: PrivacyRoute,
   ReviewRoute: ReviewRoute,
 }
 export const routeTree = rootRouteImport

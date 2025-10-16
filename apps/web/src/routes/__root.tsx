@@ -25,7 +25,11 @@ const RootLayout = () => {
 
   useEffect(() => {
     if (!(isLoading || isAuthenticated)) {
-      navigate({ to: "/hero" });
+      const currentPath = window.location.pathname;
+      const publicPaths = ["/hero", "/privacy"];
+      if (!publicPaths.includes(currentPath)) {
+        navigate({ to: "/hero" });
+      }
     }
   }, [isAuthenticated, isLoading, navigate]);
 
