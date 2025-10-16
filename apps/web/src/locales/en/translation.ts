@@ -163,4 +163,100 @@ export default {
   errors: {
     required: "This field is required",
   },
+  privacy: {
+    title: "Privacy Policy",
+    lastUpdated: "Last Updated: October 15, 2025",
+    introduction: {
+      title: "Introduction",
+      content:
+        'Remembr ("we", "our", or "us") operates the website remembr.reda.sh. This Privacy Policy explains how we collect, use, and protect your personal information when you use our spaced repetition learning service.',
+    },
+    informationWeCollect: {
+      title: "Information We Collect",
+      googleAuth: {
+        title: "Information from Google Authentication",
+        description: "When you sign in with Google, we collect:",
+        email: "Your email address",
+        name: "Your name",
+        picture: "Your Google profile picture (optional)",
+      },
+      youProvide: {
+        title: "Information You Provide",
+        flashcards: "Flashcards you create (questions and answers)",
+        deckNames: "Deck names and organization",
+        studyData: "Study session data and progress",
+      },
+    },
+    howWeUse: {
+      title: "How We Use Your Information",
+      intro: "We use your information to:",
+      authenticate:
+        "Authenticate your account and provide access to our service",
+      store: "Store and organize your flashcards and study materials",
+      track: "Track your learning progress and schedule reviews",
+      improve: "Improve our service and user experience",
+    },
+    dataSecurity: {
+      title: "Data Storage and Security",
+      storage: "Your data is stored securely using Convex database services",
+      measures:
+        "We use industry-standard security measures to protect your information",
+      privacy: "Your flashcard content is private and only accessible to you",
+    },
+    dataSharing: {
+      title: "Data Sharing",
+      doNot: "We do NOT",
+      doNotSell: "Sell your personal information to third parties",
+      doNotShare: "Share your flashcard content with anyone",
+      doNotAds: "Use your data for advertising purposes",
+      onlyWhen: "We only share data when",
+      byLaw: "Required by law or legal process",
+      protect: "Necessary to protect our rights or safety",
+    },
+    googleData: {
+      title: "Your Google Data",
+      intro: "We access the following Google user data:",
+      emailDesc: "Used for account creation and authentication",
+      profileDesc: "Used to personalize your experience",
+      note: "We do not access, use, process, or share any other Google user data.",
+    },
+    rights: {
+      title: "Your Rights",
+      intro: "You have the right to:",
+      access: "Access your personal data",
+      delete: "Delete your account and all associated data",
+      export: "Export your flashcard data",
+      optOut: "Opt out of communications",
+    },
+    retention: {
+      title: "Data Retention and Deletion",
+      retain: "We retain your data as long as your account is active",
+      contact: "You can delete your account at any time by contacting us",
+      deletion:
+        "Upon account deletion, all your data will be permanently removed within 30 days",
+    },
+    childrenPrivacy: {
+      title: "Children's Privacy",
+      content:
+        "Our service is not intended for users under 13 years of age. We do not knowingly collect information from children under 13.",
+    },
+    changes: {
+      title: "Changes to This Policy",
+      content:
+        'We may update this Privacy Policy from time to time. We will notify you of significant changes by posting the new policy on this page and updating the "Last Updated" date.',
+    },
+    contactUs: {
+      title: "Contact Us",
+      intro:
+        "If you have questions about this Privacy Policy or want to exercise your data rights, please contact us at:",
+      email: "Email",
+    },
+    compliance: {
+      title: "Compliance",
+      intro: "This privacy policy complies with:",
+      google: "Google API Services User Data Policy",
+      gdpr: "General Data Protection Regulation (GDPR)",
+      ccpa: "California Consumer Privacy Act (CCPA)",
+    },
+  },
 } as const;

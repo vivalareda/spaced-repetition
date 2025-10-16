@@ -170,4 +170,105 @@ export default {
   errors: {
     required: "Ce champ est requis",
   },
+  privacy: {
+    title: "Politique de Confidentialité",
+    lastUpdated: "Dernière mise à jour : 15 octobre 2025",
+    introduction: {
+      title: "Introduction",
+      content:
+        "Remembr (« nous », « notre » ou « nous ») exploite le site web remembr.reda.sh. Cette politique de confidentialité explique comment nous collectons, utilisons et protégeons vos informations personnelles lorsque vous utilisez notre service d'apprentissage par répétition espacée.",
+    },
+    informationWeCollect: {
+      title: "Informations que nous collectons",
+      googleAuth: {
+        title: "Informations provenant de l'authentification Google",
+        description:
+          "Lorsque vous vous connectez avec Google, nous collectons :",
+        email: "Votre adresse e-mail",
+        name: "Votre nom",
+        picture: "Votre photo de profil Google (facultatif)",
+      },
+      youProvide: {
+        title: "Informations que vous fournissez",
+        flashcards: "Les cartes mémoire que vous créez (questions et réponses)",
+        deckNames: "Les noms des paquets et leur organisation",
+        studyData: "Les données de session d'étude et votre progression",
+      },
+    },
+    howWeUse: {
+      title: "Comment nous utilisons vos informations",
+      intro: "Nous utilisons vos informations pour :",
+      authenticate:
+        "Authentifier votre compte et vous donner accès à notre service",
+      store: "Stocker et organiser vos cartes mémoire et vos matériels d'étude",
+      track:
+        "Suivre votre progression d'apprentissage et planifier vos révisions",
+      improve: "Améliorer notre service et votre expérience utilisateur",
+    },
+    dataSecurity: {
+      title: "Stockage et sécurité des données",
+      storage:
+        "Vos données sont stockées de manière sécurisée à l'aide des services de base de données Convex",
+      measures:
+        "Nous utilisons des mesures de sécurité conformes aux normes de l'industrie pour protéger vos informations",
+      privacy:
+        "Le contenu de votre carte mémoire est privé et uniquement accessible par vous",
+    },
+    dataSharing: {
+      title: "Partage des données",
+      doNot: "Nous ne faisons PAS",
+      doNotSell: "Vendre vos informations personnelles à des tiers",
+      doNotShare: "Partager le contenu de votre carte mémoire avec quiconque",
+      doNotAds: "Utiliser vos données à des fins publicitaires",
+      onlyWhen: "Nous partageons les données uniquement lorsque",
+      byLaw: "Requis par la loi ou un processus juridique",
+      protect: "Nécessaire pour protéger nos droits ou notre sécurité",
+    },
+    googleData: {
+      title: "Vos données Google",
+      intro: "Nous accédons aux données utilisateur Google suivantes :",
+      emailDesc: "Utilisée pour la création de compte et l'authentification",
+      profileDesc: "Utilisée pour personnaliser votre expérience",
+      note: "Nous n'accédons pas, n'utilisons pas, ne traitons pas et ne partageons aucune autre donnée utilisateur Google.",
+    },
+    rights: {
+      title: "Vos droits",
+      intro: "Vous avez le droit de :",
+      access: "Accéder à vos données personnelles",
+      delete: "Supprimer votre compte et toutes les données associées",
+      export: "Exporter vos données de carte mémoire",
+      optOut: "Vous désinscrire des communications",
+    },
+    retention: {
+      title: "Conservation et suppression des données",
+      retain: "Nous conservons vos données tant que votre compte est actif",
+      contact:
+        "Vous pouvez supprimer votre compte à tout moment en nous contactant",
+      deletion:
+        "Après suppression du compte, toutes vos données seront supprimées de manière permanente dans les 30 jours",
+    },
+    childrenPrivacy: {
+      title: "Confidentialité des enfants",
+      content:
+        "Notre service n'est pas destiné aux utilisateurs de moins de 13 ans. Nous ne collectons pas délibérément d'informations auprès d'enfants de moins de 13 ans.",
+    },
+    changes: {
+      title: "Modifications de cette politique",
+      content:
+        "Nous pouvons mettre à jour cette politique de confidentialité de temps à autre. Nous vous informerons des modifications importantes en publiant la nouvelle politique sur cette page et en mettant à jour la date de « Dernière mise à jour ».",
+    },
+    contactUs: {
+      title: "Nous contacter",
+      intro:
+        "Si vous avez des questions sur cette politique de confidentialité ou si vous souhaitez exercer vos droits en matière de données, veuillez nous contacter à :",
+      email: "E-mail",
+    },
+    compliance: {
+      title: "Conformité",
+      intro: "Cette politique de confidentialité est conforme à :",
+      google: "Politique des données utilisateur des services API Google",
+      gdpr: "Règlement général sur la protection des données (RGPD)",
+      ccpa: "California Consumer Privacy Act (CCPA)",
+    },
+  },
 } as const;

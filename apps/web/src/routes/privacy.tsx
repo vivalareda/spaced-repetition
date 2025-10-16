@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/privacy")({
   beforeLoad: () => {
@@ -8,75 +9,86 @@ export const Route = createFileRoute("/privacy")({
 });
 
 function PrivacyPage() {
+  const { t } = useTranslation();
+
+  const p = t;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-main/5 to-secondary-background/20">
       <div className="mx-auto max-w-3xl px-6 py-16 sm:px-8 lg:px-12">
         <div className="space-y-12">
           <div className="space-y-4 text-center">
             <h1 className="font-bold text-5xl text-foreground">
-              Privacy Policy
+              {p("privacy.title")}
             </h1>
-            <p className="text-muted-foreground">
-              Last Updated: October 15, 2025
-            </p>
+            <p className="text-muted-foreground">{p("privacy.lastUpdated")}</p>
           </div>
 
           <section className="space-y-4">
             <h2 className="border-b-2 border-main pb-3 font-bold text-2xl text-foreground">
-              Introduction
+              {p("privacy.introduction.title")}
             </h2>
             <p className="leading-relaxed text-foreground/80">
-              Remembr ("we", "our", or "us") operates the website
-              remembr.reda.sh. This Privacy Policy explains how we collect, use,
-              and protect your personal information when you use our spaced
-              repetition learning service.
+              {p("privacy.introduction.content")}
             </p>
           </section>
 
           <section className="space-y-4">
             <h2 className="border-b-2 border-main pb-3 font-bold text-2xl text-foreground">
-              Information We Collect
+              {p("privacy.informationWeCollect.title")}
             </h2>
             <div className="space-y-4">
               <div className="rounded-lg border border-main/10 bg-main/5 p-6">
                 <h3 className="mb-3 font-semibold text-foreground">
-                  Information from Google Authentication
+                  {p("privacy.informationWeCollect.googleAuth.title")}
                 </h3>
                 <p className="mb-3 text-foreground/80">
-                  When you sign in with Google, we collect:
+                  {p("privacy.informationWeCollect.googleAuth.description")}
                 </p>
                 <ul className="space-y-2 text-foreground/80">
                   <li className="flex items-start gap-3">
                     <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                    <span>Your email address</span>
+                    <span>
+                      {p("privacy.informationWeCollect.googleAuth.email")}
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                    <span>Your name</span>
+                    <span>
+                      {p("privacy.informationWeCollect.googleAuth.name")}
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                    <span>Your Google profile picture (optional)</span>
+                    <span>
+                      {p("privacy.informationWeCollect.googleAuth.picture")}
+                    </span>
                   </li>
                 </ul>
               </div>
 
               <div className="rounded-lg border border-main/10 bg-main/5 p-6">
                 <h3 className="mb-3 font-semibold text-foreground">
-                  Information You Provide
+                  {p("privacy.informationWeCollect.youProvide.title")}
                 </h3>
                 <ul className="space-y-2 text-foreground/80">
                   <li className="flex items-start gap-3">
                     <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                    <span>Flashcards you create (questions and answers)</span>
+                    <span>
+                      {p("privacy.informationWeCollect.youProvide.flashcards")}
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                    <span>Deck names and organization</span>
+                    <span>
+                      {p("privacy.informationWeCollect.youProvide.deckNames")}
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                    <span>Study session data and progress</span>
+                    <span>
+                      {p("privacy.informationWeCollect.youProvide.studyData")}
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -85,82 +97,71 @@ function PrivacyPage() {
 
           <section className="space-y-4">
             <h2 className="border-b-2 border-main pb-3 font-bold text-2xl text-foreground">
-              How We Use Your Information
+              {p("privacy.howWeUse.title")}
             </h2>
-            <p className="text-foreground/80">We use your information to:</p>
+            <p className="text-foreground/80">{p("privacy.howWeUse.intro")}</p>
             <ul className="space-y-2 text-foreground/80">
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>
-                  Authenticate your account and provide access to our service
-                </span>
+                <span>{p("privacy.howWeUse.authenticate")}</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>
-                  Store and organize your flashcards and study materials
-                </span>
+                <span>{p("privacy.howWeUse.store")}</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>Track your learning progress and schedule reviews</span>
+                <span>{p("privacy.howWeUse.track")}</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>Improve our service and user experience</span>
+                <span>{p("privacy.howWeUse.improve")}</span>
               </li>
             </ul>
           </section>
 
           <section className="space-y-4">
             <h2 className="border-b-2 border-main pb-3 font-bold text-2xl text-foreground">
-              Data Storage and Security
+              {p("privacy.dataSecurity.title")}
             </h2>
             <ul className="space-y-2 text-foreground/80">
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>
-                  Your data is stored securely using Convex database services
-                </span>
+                <span>{p("privacy.dataSecurity.storage")}</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>
-                  We use industry-standard security measures to protect your
-                  information
-                </span>
+                <span>{p("privacy.dataSecurity.measures")}</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>
-                  Your flashcard content is private and only accessible to you
-                </span>
+                <span>{p("privacy.dataSecurity.privacy")}</span>
               </li>
             </ul>
           </section>
 
           <section className="space-y-4">
             <h2 className="border-b-2 border-main pb-3 font-bold text-2xl text-foreground">
-              Data Sharing
+              {p("privacy.dataSharing.title")}
             </h2>
 
             <div className="rounded-lg border border-red-200 bg-red-50/50 p-6">
               <h3 className="mb-3 flex items-center gap-2 font-semibold text-red-900">
                 <span className="inline-block h-2 w-2 rounded-full bg-red-500" />
-                We do NOT
+                {p("privacy.dataSharing.doNot")}
               </h3>
               <ul className="space-y-2 text-red-900/80">
                 <li className="flex items-start gap-3">
                   <span className="mt-1 inline-block h-2 w-2 rounded-full bg-red-500 flex-shrink-0" />
-                  <span>Sell your personal information to third parties</span>
+                  <span>{p("privacy.dataSharing.doNotSell")}</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="mt-1 inline-block h-2 w-2 rounded-full bg-red-500 flex-shrink-0" />
-                  <span>Share your flashcard content with anyone</span>
+                  <span>{p("privacy.dataSharing.doNotShare")}</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="mt-1 inline-block h-2 w-2 rounded-full bg-red-500 flex-shrink-0" />
-                  <span>Use your data for advertising purposes</span>
+                  <span>{p("privacy.dataSharing.doNotAds")}</span>
                 </li>
               </ul>
             </div>
@@ -168,16 +169,16 @@ function PrivacyPage() {
             <div className="rounded-lg border border-green-200 bg-green-50/50 p-6">
               <h3 className="mb-3 flex items-center gap-2 font-semibold text-green-900">
                 <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
-                We only share data when
+                {p("privacy.dataSharing.onlyWhen")}
               </h3>
               <ul className="space-y-2 text-green-900/80">
                 <li className="flex items-start gap-3">
                   <span className="mt-1 inline-block h-2 w-2 rounded-full bg-green-500 flex-shrink-0" />
-                  <span>Required by law or legal process</span>
+                  <span>{p("privacy.dataSharing.byLaw")}</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="mt-1 inline-block h-2 w-2 rounded-full bg-green-500 flex-shrink-0" />
-                  <span>Necessary to protect our rights or safety</span>
+                  <span>{p("privacy.dataSharing.protect")}</span>
                 </li>
               </ul>
             </div>
@@ -185,17 +186,17 @@ function PrivacyPage() {
 
           <section className="space-y-4">
             <h2 className="border-b-2 border-main pb-3 font-bold text-2xl text-foreground">
-              Your Google Data
+              {p("privacy.googleData.title")}
             </h2>
             <p className="text-foreground/80">
-              We access the following Google user data:
+              {p("privacy.googleData.intro")}
             </p>
             <ul className="space-y-3 text-foreground/80">
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
                 <div>
-                  <strong className="text-foreground">Email address</strong>:
-                  Used for account creation and authentication
+                  <strong className="text-foreground">Email address</strong>:{" "}
+                  {p("privacy.googleData.emailDesc")}
                 </div>
               </li>
               <li className="flex items-start gap-3">
@@ -204,124 +205,108 @@ function PrivacyPage() {
                   <strong className="text-foreground">
                     Profile information
                   </strong>
-                  : Used to personalize your experience
+                  : {p("privacy.googleData.profileDesc")}
                 </div>
               </li>
             </ul>
-            <p className="text-foreground/80">
-              We do not access, use, process, or share any other Google user
-              data.
-            </p>
+            <p className="text-foreground/80">{p("privacy.googleData.note")}</p>
           </section>
 
           <section className="space-y-4">
             <h2 className="border-b-2 border-main pb-3 font-bold text-2xl text-foreground">
-              Your Rights
+              {p("privacy.rights.title")}
             </h2>
-            <p className="text-foreground/80">You have the right to:</p>
+            <p className="text-foreground/80">{p("privacy.rights.intro")}</p>
             <ul className="space-y-2 text-foreground/80">
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>Access your personal data</span>
+                <span>{p("privacy.rights.access")}</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>Delete your account and all associated data</span>
+                <span>{p("privacy.rights.delete")}</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>Export your flashcard data</span>
+                <span>{p("privacy.rights.export")}</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>Opt out of communications</span>
+                <span>{p("privacy.rights.optOut")}</span>
               </li>
             </ul>
           </section>
 
           <section className="space-y-4">
             <h2 className="border-b-2 border-main pb-3 font-bold text-2xl text-foreground">
-              Data Retention and Deletion
+              {p("privacy.retention.title")}
             </h2>
             <ul className="space-y-2 text-foreground/80">
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>
-                  We retain your data as long as your account is active
-                </span>
+                <span>{p("privacy.retention.retain")}</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>
-                  You can delete your account at any time by contacting us
-                </span>
+                <span>{p("privacy.retention.contact")}</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>
-                  Upon account deletion, all your data will be permanently
-                  removed within 30 days
-                </span>
+                <span>{p("privacy.retention.deletion")}</span>
               </li>
             </ul>
           </section>
 
           <section className="space-y-4">
             <h2 className="border-b-2 border-main pb-3 font-bold text-2xl text-foreground">
-              Children's Privacy
+              {p("privacy.childrenPrivacy.title")}
             </h2>
             <p className="text-foreground/80">
-              Our service is not intended for users under 13 years of age. We do
-              not knowingly collect information from children under 13.
+              {p("privacy.childrenPrivacy.content")}
             </p>
           </section>
 
           <section className="space-y-4">
             <h2 className="border-b-2 border-main pb-3 font-bold text-2xl text-foreground">
-              Changes to This Policy
+              {p("privacy.changes.title")}
             </h2>
-            <p className="text-foreground/80">
-              We may update this Privacy Policy from time to time. We will
-              notify you of significant changes by posting the new policy on
-              this page and updating the "Last Updated" date.
-            </p>
+            <p className="text-foreground/80">{p("privacy.changes.content")}</p>
           </section>
 
           <section className="space-y-4">
             <h2 className="border-b-2 border-main pb-3 font-bold text-2xl text-foreground">
-              Contact Us
+              {p("privacy.contactUs.title")}
             </h2>
-            <p className="text-foreground/80">
-              If you have questions about this Privacy Policy or want to
-              exercise your data rights, please contact us at:
-            </p>
+            <p className="text-foreground/80">{p("privacy.contactUs.intro")}</p>
             <div className="rounded-lg border border-main/20 bg-main/5 p-4">
               <p className="text-foreground/80">
-                <strong className="text-foreground">Email</strong>:
-                tarzaltreda@gmail.com
+                <strong className="text-foreground">
+                  {p("privacy.contactUs.email")}
+                </strong>
+                : tarzaltreda@gmail.com
               </p>
             </div>
           </section>
 
           <section className="space-y-4">
             <h2 className="border-b-2 border-main pb-3 font-bold text-2xl text-foreground">
-              Compliance
+              {p("privacy.compliance.title")}
             </h2>
             <p className="text-foreground/80">
-              This privacy policy complies with:
+              {p("privacy.compliance.intro")}
             </p>
             <ul className="space-y-2 text-foreground/80">
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>Google API Services User Data Policy</span>
+                <span>{p("privacy.compliance.google")}</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>General Data Protection Regulation (GDPR)</span>
+                <span>{p("privacy.compliance.gdpr")}</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-2 w-2 rounded-full bg-main flex-shrink-0" />
-                <span>California Consumer Privacy Act (CCPA)</span>
+                <span>{p("privacy.compliance.ccpa")}</span>
               </li>
             </ul>
           </section>
