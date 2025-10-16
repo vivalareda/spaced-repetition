@@ -97,8 +97,13 @@ function UnauthenticatedNav() {
 
   return (
     <div className="sticky top-0 z-10 flex h-24 w-full items-center bg-white px-6 shadow-lg">
-      <div className="hidden md:flex md:flex-1">
+      <div className="hidden md:flex md:flex-1 md:gap-2">
         <LanguageSelector />
+        <Link to="/privacy">
+          <Button size="sm" variant="neutral">
+            Privacy
+          </Button>
+        </Link>
       </div>
 
       <div className="md:-translate-x-1/2 -ml-14 md:-ml-8 md:absolute md:left-1/2">
