@@ -25,7 +25,7 @@ function HeroPage() {
   }, [isAuthenticated, navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-main/5 to-secondary-background/20">
+    <div className="min-h-screen bg-gradient-to-br from-white via-main/5 to-secondary-background/20 pt-22">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <section className="text-center">
           <div className="mx-auto max-w-4xl">
