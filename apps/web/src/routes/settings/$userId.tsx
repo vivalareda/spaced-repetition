@@ -1,5 +1,5 @@
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMutation } from "convex/react";
 import { Copy, Eye, EyeOff, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -16,6 +16,11 @@ import { Input } from "@/components/ui/input";
 import { useUserData } from "@/hooks/use-user-data";
 
 export const Route = createFileRoute("/settings/$userId")({
+  beforeLoad: ({ context }) => {
+    if (!context.isAuthenticated) {
+      throw redirect({ to: "/hero" });
+    }
+  },
   component: RouteComponent,
 });
 
