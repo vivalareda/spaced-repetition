@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
-import { getCurrentUserId } from "./users";
+import { getCurrentUserId, getUserByApiKey } from "./users";
 
 const INITIAL_EASE_FACTOR = 2.5;
 
@@ -74,6 +74,31 @@ export const createCard = mutation({
       answerCode: args.answerCode,
       language: args.language,
       tags: args.tags,
+      nextReviewDate: Date.now(),
+      easeFactor: INITIAL_EASE_FACTOR,
+      intervalDays: 0,
+      repetitions: 0,
+    });
+
+    return newCard;
+  },
+});
+
+export const createQuestionCard = mutation({
+  args: {
+    apiKey: v.string(),
+    question: v.string(),
+    answer: v.string(),
+    deck: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getUserByApiKey(ctx, args.apiKey);
+
+    const newCard = await ctx.db.insert("cards", {
+      userId,
+      question: args.question,
+      answer: args.answer,
       nextReviewDate: Date.now(),
       easeFactor: INITIAL_EASE_FACTOR,
       intervalDays: 0,

@@ -26,6 +26,8 @@ export function useUserData() {
     shouldRun ? {} : "skip"
   );
 
+  const userApiKey = useQuery(api.users.getApiKey, shouldRun ? {} : "skip");
+
   const isLoading =
     (userCards === undefined ||
       userDecks === undefined ||
@@ -38,6 +40,7 @@ export function useUserData() {
     userDecks: userDecks || [],
     userDecksWithCardCount: userDecksWithCardCount || [],
     cardsDueToday: cardsDueToday || [],
+    userApiKey,
     userSynced,
     isLoading,
     isAuthenticated,

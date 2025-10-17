@@ -33,4 +33,11 @@ export default defineSchema({
     deckName: v.string(),
     deckDescription: v.optional(v.string()),
   }).index("by_user", ["userId"]),
+
+  apiKeys: defineTable({
+    userId: v.id("users"),
+    apiKey: v.string(),
+  })
+    .index("by_apiKey", ["apiKey"])
+    .index("by_user", ["userId"]),
 });

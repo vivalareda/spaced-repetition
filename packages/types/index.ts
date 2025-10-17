@@ -2,6 +2,7 @@ import type { Doc } from "@spaced-repetition-monorepo/backend/convex/_generated/
 
 export type Card = Doc<"cards">;
 export type Deck = Doc<"decks">;
+export type ApiKey = Doc<"apiKeys">;
 export type CodeCard = Required<Card>;
 export type Difficulty = "easy" | "medium" | "hard" | "again";
 

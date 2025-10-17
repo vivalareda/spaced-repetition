@@ -271,4 +271,36 @@ export default {
       ccpa: "California Consumer Privacy Act (CCPA)",
     },
   },
+  settings: {
+    title: "Paramètres",
+    description: "Gérez votre compte et vos clés API",
+    apiKeys: {
+      title: "Clés API",
+      description: "Créez et gérez les clés API pour accéder à vos données",
+      noKeys: "Aucune clé API créée pour le moment",
+      createNew: "Créer une nouvelle clé API",
+      enterName: "Entrez un nom pour cette clé API",
+      createKey: "Créer la clé",
+      cancel: "Annuler",
+      copy: "Copier la clé API",
+      show: "Afficher la clé API",
+      hide: "Masquer la clé API",
+      delete: "Supprimer la clé API",
+      created: "Créée",
+      lastUsed: "Dernièrement utilisée",
+    },
+    reviewSettings: {
+      title: "Paramètres de révision",
+      description:
+        "Configurez le fonctionnement de la répétition espacée pour vos cartes",
+      askAgainThreshold: "Seuil de demande à nouveau",
+      askAgainDescription:
+        "Le nombre minimum de fois qu'une question doit être répondue avant que les évaluations de difficulté de la spaced repetition soient prises en compte",
+      example:
+        "Exemple : si vous réglez sur 5, une carte ne sera pas marquée comme Facile/Moyen/Difficile jusqu'à ce qu'elle ait été répondue au moins 5 fois.",
+      times: "fois",
+      saveChanges: "Enregistrer les modifications",
+      cancel: "Annuler",
+    },
+  },
 } as const;

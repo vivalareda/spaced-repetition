@@ -1,5 +1,6 @@
 {
   "name": "@spaced-repetition-monorepo/backend",
+  "type": "module",
   "version": "1.0.0",
   "scripts": {
     "dev": "convex dev",

@@ -14,6 +14,7 @@
     "check-types": "turbo check-types",
     "dev:native": "turbo -F native dev",
     "dev:web": "turbo run dev --filter=web --filter=@spaced-repetition-monorepo/backend",
+    "dev:web:mcp": "turbo run dev --filter=web --filter=@spaced-repetition-monorepo/backend --filter=mcp",
     "dev:server": "turbo -F @spaced-repetition-monorepo/backend dev",
     "dev:setup": "turbo -F @spaced-repetition-monorepo/backend dev:setup"
   },

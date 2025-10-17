@@ -15,6 +15,7 @@ import { Route as NewRouteImport } from './routes/new'
 import { Route as HeroRouteImport } from './routes/hero'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsUserIdRouteImport } from './routes/settings/$userId'
 
 const ReviewRoute = ReviewRouteImport.update({
   id: '/review',
@@ -46,6 +47,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsUserIdRoute = SettingsUserIdRouteImport.update({
+  id: '/settings/$userId',
+  path: '/settings/$userId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/new': typeof NewRoute
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
+  '/settings/$userId': typeof SettingsUserIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/new': typeof NewRoute
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
+  '/settings/$userId': typeof SettingsUserIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,12 +79,27 @@ export interface FileRoutesById {
   '/new': typeof NewRoute
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
+  '/settings/$userId': typeof SettingsUserIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/hero' | '/new' | '/privacy' | '/review'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/hero'
+    | '/new'
+    | '/privacy'
+    | '/review'
+    | '/settings/$userId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/hero' | '/new' | '/privacy' | '/review'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/hero'
+    | '/new'
+    | '/privacy'
+    | '/review'
+    | '/settings/$userId'
   id:
     | '__root__'
     | '/'
@@ -85,6 +108,7 @@ export interface FileRouteTypes {
     | '/new'
     | '/privacy'
     | '/review'
+    | '/settings/$userId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -94,6 +118,7 @@ export interface RootRouteChildren {
   NewRoute: typeof NewRoute
   PrivacyRoute: typeof PrivacyRoute
   ReviewRoute: typeof ReviewRoute
+  SettingsUserIdRoute: typeof SettingsUserIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -140,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/$userId': {
+      id: '/settings/$userId'
+      path: '/settings/$userId'
+      fullPath: '/settings/$userId'
+      preLoaderRoute: typeof SettingsUserIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -150,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   NewRoute: NewRoute,
   PrivacyRoute: PrivacyRoute,
   ReviewRoute: ReviewRoute,
+  SettingsUserIdRoute: SettingsUserIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

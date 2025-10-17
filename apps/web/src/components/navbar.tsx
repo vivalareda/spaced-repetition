@@ -1,7 +1,7 @@
-import { useClerk } from "@clerk/clerk-react";
+import { useClerk, useUser } from "@clerk/clerk-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useConvexAuth } from "convex/react";
-import { Globe } from "lucide-react";
+import { Globe, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
@@ -39,9 +39,11 @@ function LanguageSelector() {
 function AuthenticatedNav({
   onDashboardClick,
   onHomeClick,
+  onSettingsClick,
 }: {
   onDashboardClick: () => void;
   onHomeClick: () => void;
+  onSettingsClick: () => void;
 }) {
   const { t } = useTranslation();
   const { signOut } = useClerk();
@@ -74,6 +76,9 @@ function AuthenticatedNav({
         </Button>
         <Button onClick={onDashboardClick} size="sm">
           {t("navbar.dashboard")}
+        </Button>
+        <Button onClick={onSettingsClick} size="icon" variant="neutral">
+          <Settings className="h-4 w-4" />
         </Button>
         <Button onClick={handleSignOut} size="sm" variant="neutral">
           {t("navbar.signOut")}
@@ -133,6 +138,7 @@ function UnauthenticatedNav() {
 export function Navbar() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useConvexAuth();
+  const { user } = useUser();
 
   const handleDashboardClick = () => {
     navigate({ to: "/dashboard" });
@@ -142,12 +148,19 @@ export function Navbar() {
     navigate({ to: "/" });
   };
 
+  const handleSettingsClick = () => {
+    if (user?.id) {
+      navigate({ to: `/settings/${user.id}` });
+    }
+  };
+
   return !isAuthenticated || isLoading ? (
     <UnauthenticatedNav />
   ) : (
     <AuthenticatedNav
       onDashboardClick={handleDashboardClick}
       onHomeClick={handleHomeClick}
+      onSettingsClick={handleSettingsClick}
     />
   );
 }

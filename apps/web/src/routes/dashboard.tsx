@@ -20,11 +20,12 @@ import { useUserData } from "@/hooks/use-user-data";
 
 export const Route = createFileRoute("/dashboard")({
   component: RouteComponent,
-  loader: async ({ context }) => {
+  beforeLoad: ({ context }) => {
     if (!context.isAuthenticated) {
       throw redirect({ to: "/hero" });
     }
-
+  },
+  loader: async ({ context }) => {
     if (context.userSynced) {
       await context.queryClient.prefetchQuery(
         convexQuery(api.decks.getDecksWithCardCount, {})

@@ -259,4 +259,35 @@ export default {
       ccpa: "California Consumer Privacy Act (CCPA)",
     },
   },
+  settings: {
+    title: "Settings",
+    description: "Manage your account and API keys",
+    apiKeys: {
+      title: "API Keys",
+      description: "Create and manage API keys for accessing your data",
+      noKeys: "No API keys created yet",
+      createNew: "Create New API Key",
+      enterName: "Enter a name for this API key",
+      createKey: "Create Key",
+      cancel: "Cancel",
+      copy: "Copy API key",
+      show: "Show API key",
+      hide: "Hide API key",
+      delete: "Delete API key",
+      created: "Created",
+      lastUsed: "Last used",
+    },
+    reviewSettings: {
+      title: "Review Settings",
+      description: "Configure how spaced repetition works for your cards",
+      askAgainThreshold: "Ask Again Threshold",
+      askAgainDescription:
+        "The minimum number of times a question must be answered before spaced repetition difficulty ratings are considered",
+      example:
+        "Example: If set to 5, a card won't be marked as Easy/Medium/Hard until it's been answered at least 5 times.",
+      times: "times",
+      saveChanges: "Save Changes",
+      cancel: "Cancel",
+    },
+  },
 } as const;
