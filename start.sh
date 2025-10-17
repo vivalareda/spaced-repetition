@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Starting all services!!!"
+
 # Start MCP server
 cd apps/mcp
 PORT=3000 npm run serve &
