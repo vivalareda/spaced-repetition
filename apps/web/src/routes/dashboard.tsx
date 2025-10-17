@@ -26,7 +26,7 @@ export const Route = createFileRoute("/dashboard")({
     }
   },
   loader: async ({ context }) => {
-    if (context.userSynced) {
+    if (context.userSynced && context.isAuthenticated) {
       await context.queryClient.prefetchQuery(
         convexQuery(api.decks.getDecksWithCardCount, {})
       );
