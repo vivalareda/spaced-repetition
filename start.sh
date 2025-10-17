@@ -9,7 +9,7 @@ MCP_PID=$!
 
 # Start web app
 cd ../web
-npx serve -s dist -l 3000 &
+npm run serve &
 WEB_PID=$!
 
 # Wait for both processes
