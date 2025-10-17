@@ -2,12 +2,12 @@
 
 # Start MCP server
 cd apps/mcp
-npm run serve &
+PORT=3000 npm run serve &
 MCP_PID=$!
 
 # Start web app
 cd ../web
-npx serve -s dist -l 3001 &
+npx serve -s dist -l 3000 &
 WEB_PID=$!
 
 # Wait for both processes
