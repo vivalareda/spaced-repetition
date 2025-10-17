@@ -1,5 +1,5 @@
 import { useClerk, useUser } from "@clerk/clerk-react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useConvexAuth } from "convex/react";
 import { Globe, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -50,6 +50,7 @@ function AuthenticatedNav({
 
   const handleSignOut = () => {
     signOut();
+    redirect({ to: "/hero" });
   };
 
   return (
