@@ -1,5 +1,7 @@
-import { Copy, Eye, EyeOff, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { ClipboardIcon } from "@/components/ui/ClipboardIcon";
+import { EyeOffIcon } from "@/components/ui/eye-off";
+import { TrashIcon } from "@/components/ui/TrashIcon";
 import { useCopyClipboard } from "@/hooks/use-copy-clipboard";
 
 type ApiKeyDisplayProps = {
@@ -39,31 +41,27 @@ export function ApiKeyDisplay({
             aria-label={t(
               isVisible ? "settings.apiKeys.hide" : "settings.apiKeys.show"
             )}
-            className="inline-flex items-center justify-center p-1 hover:bg-foreground/10"
+            className="inline-flex items-center justify-center p-1 hover:rounded-md hover:bg-foreground/10"
             onClick={toggleVisibility}
             type="button"
           >
-            {isVisible ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
+            <EyeOffIcon className="h-5 w-5" />
           </button>
           <button
             aria-label={t("settings.apiKeys.copy")}
-            className="inline-flex items-center justify-center p-1 hover:bg-foreground/10"
+            className="inline-flex items-center justify-center p-1 hover:rounded-md hover:bg-foreground/10"
             onClick={() => copy(apiKey)}
             type="button"
           >
-            <Copy className="h-4 w-4" />
+            <ClipboardIcon className="h-4 w-4" />
           </button>
           <button
             aria-label={t("settings.apiKeys.delete")}
-            className="inline-flex items-center justify-center p-1 text-destructive hover:bg-foreground/10"
+            className="inline-flex items-center justify-center p-1 text-destructive hover:rounded-md hover:bg-foreground/10"
             onClick={handleDelete}
             type="button"
           >
-            <Trash2 className="h-4 w-4" />
+            <TrashIcon className="h-4 w-4" />
           </button>
         </div>
       </div>

@@ -3,7 +3,6 @@ import { Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useConvexAuth } from "convex/react";
 import { Globe, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
-
 import { Button } from "@/components/ui/button";
 import {
   Select,

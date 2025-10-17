@@ -27,6 +27,7 @@
     "i18next": "^25.6.0",
     "lucide-react": "^0.525.0",
     "monaco-editor": "^0.54.0",
+    "motion": "^12.23.24",
     "next-themes": "^0.4.6",
     "posthog-js": "^1.275.1",
     "radix-ui": "^1.4.2",
