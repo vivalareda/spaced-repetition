@@ -1,5 +1,4 @@
 /** biome-ignore-all lint/suspicious/noConsole: <temporary> */
-/** biome-ignore-all lint/style/noNonNullAssertion: <temporary> */
 import { randomUUID } from "node:crypto";
 import { InMemoryEventStore } from "@modelcontextprotocol/sdk/examples/shared/inMemoryEventStore.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -64,7 +63,10 @@ app.delete("/mcp", async (req, res) => {
   try {
     const sessionId = req.headers["mcp-session-id"] as string | undefined;
     if (sessionId && transports.has(sessionId)) {
-      const transport = transports.get(sessionId)!;
+      const transport = transports.get(sessionId);
+      if (transport === undefined) {
+        throw new Error("Transport not found");
+      }
       await transport.handleRequest(req, res);
       transports.delete(sessionId);
       console.error(`Session terminated: ${sessionId}`);
