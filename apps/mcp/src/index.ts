@@ -30,10 +30,6 @@ if (!process.env.CONVEX_URL) {
   throw new Error("Missing env variable");
 }
 
-if (!process.env.REMEMBR_API_KEY) {
-  throw new Error("Missing env variable API_KEY");
-}
-
 const client = new ConvexHttpClient(process.env.CONVEX_URL);
 
 const app = express();
