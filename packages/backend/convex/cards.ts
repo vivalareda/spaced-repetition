@@ -113,12 +113,10 @@ export const getDueToday = query({
   handler: async (ctx) => {
     const userId = await getCurrentUserId(ctx);
     const today = Date.now();
-
     return await ctx.db
       .query("cards")
-      .withIndex("by_user_due_date", (q) =>
-        q.eq("userId", userId).lte("nextReviewDate", today)
-      )
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .filter((q) => q.lte(q.field("nextReviewDate"), today))
       .collect();
   },
 });

@@ -1,6 +1,6 @@
 import Editor from "@monaco-editor/react";
 import { useState } from "react";
-
+import { Combobox } from "@/components/combobox";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,13 +10,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 type CodeEditorModalProps = {
   isOpen: { codeBlockFor: "question" | "answer" } | null;
@@ -27,6 +20,20 @@ type CodeEditorModalProps = {
     codeBlockFor: "question" | "answer"
   ) => void;
 };
+
+const languages = [
+  { value: "javascript", label: "JavaScript" },
+  { value: "typescript", label: "TypeScript" },
+  { value: "python", label: "Python" },
+  { value: "java", label: "Java" },
+  { value: "csharp", label: "C#" },
+  { value: "cpp", label: "C++" },
+  { value: "go", label: "Go" },
+  { value: "rust", label: "Rust" },
+  { value: "php", label: "PHP" },
+  { value: "zig", label: "Zig" },
+  { value: "ruby", label: "Ruby" },
+];
 
 export function CodeEditorModal({
   isOpen,
@@ -64,26 +71,7 @@ export function CodeEditorModal({
         <div className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="language">Language</Label>
-            <Select onValueChange={setLanguage} value={language}>
-              <SelectTrigger className="bg-white">
-                <SelectValue
-                  className="bg-white"
-                  placeholder="Select a language"
-                />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="javascript">JavaScript</SelectItem>
-                <SelectItem value="typescript">TypeScript</SelectItem>
-                <SelectItem value="python">Python</SelectItem>
-                <SelectItem value="java">Java</SelectItem>
-                <SelectItem value="csharp">C#</SelectItem>
-                <SelectItem value="cpp">C++</SelectItem>
-                <SelectItem value="go">Go</SelectItem>
-                <SelectItem value="rust">Rust</SelectItem>
-                <SelectItem value="php">PHP</SelectItem>
-                <SelectItem value="ruby">Ruby</SelectItem>
-              </SelectContent>
-            </Select>
+            <Combobox items={languages} onSelect={setLanguage} />
           </div>
           <div className="grid gap-2">
             <Label>Code</Label>
