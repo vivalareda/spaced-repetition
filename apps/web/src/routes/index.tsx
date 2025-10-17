@@ -87,6 +87,7 @@ function Index() {
       startSession(cardsToReview);
       navigate({ to: "/" });
     }
+    navigate({ to: "/review" });
   };
 
   return (
