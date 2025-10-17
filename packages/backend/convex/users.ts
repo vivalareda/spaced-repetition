@@ -143,11 +143,12 @@ export const upsertFromClerk = mutation({
       .unique();
 
     if (user !== null) {
-      // User already exists, no need to update anything since we only store clerkId
+      if (user.email === undefined) {
+        user.email = identity.email;
+      }
       return user._id;
     }
 
-    // Create new user with just the clerkId
     const userId = await ctx.db.insert("users", {
       clerkId: identity.subject,
       email: identity.email,

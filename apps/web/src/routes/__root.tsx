@@ -1,5 +1,4 @@
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
-import type { QueryClient } from "@tanstack/react-query";
 import {
   createRootRouteWithContext,
   Outlet,
@@ -10,13 +9,7 @@ import { useEffect } from "react";
 import { ModalProvider } from "@/components/modals/modal-provider";
 import { Navbar } from "@/components/navbar";
 import { useUserData } from "@/hooks/use-user-data";
-
-type RootContext = {
-  queryClient: QueryClient;
-  isAuthenticated: boolean;
-  isLoading: boolean | undefined;
-  userSynced: boolean;
-};
+import type { RootContext } from "@/router";
 
 const RootLayout = () => {
   const navigate = useNavigate();
