@@ -14,7 +14,7 @@ type CodeQuestionFormProps = {
     answer: string;
     answerCode: string;
     deck: string;
-    language?: string;
+    language: string;
   };
   userDecks: string[] | undefined;
   onFieldChange: (
@@ -197,9 +197,15 @@ export function CodeQuestionForm({
       </div>
 
       <CodeEditorModal
+        answerCode={formData.answerCode}
         isOpen={isCodeEditorOpen}
+        language={formData.language}
         onClose={handleEditorClose}
         onSave={handleCodeEditorSave}
+        questionCode={formData.questionCode}
+        setCode={onQuestionCodeChange}
+        setField={onFieldChange}
+        setLanguage={onLanguageChange}
       />
     </>
   );

@@ -1,5 +1,5 @@
 import { CheckIcon, ChevronsUpDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,12 +25,19 @@ type Item = {
 
 type ComboboxProps = {
   items: Item[];
+  currentLanguage: string;
   onSelect: (value: string) => void;
 };
 
-export function Combobox({ items, onSelect }: ComboboxProps) {
+export function Combobox({ items, onSelect, currentLanguage }: ComboboxProps) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
+
+  useEffect(() => {
+    if (currentLanguage) {
+      setValue(currentLanguage);
+    }
+  }, [currentLanguage]);
 
   return (
     <Popover onOpenChange={setOpen} open={open}>
@@ -55,6 +62,7 @@ export function Combobox({ items, onSelect }: ComboboxProps) {
             <CommandGroup>
               {items.map((item) => (
                 <CommandItem
+                  defaultValue={"typescript"}
                   key={item.value}
                   onSelect={(currentValue) => {
                     setValue(currentValue === value ? "" : currentValue);

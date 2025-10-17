@@ -1,5 +1,5 @@
 import Editor from "@monaco-editor/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Combobox } from "@/components/combobox";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,9 @@ import { Label } from "@/components/ui/label";
 
 type CodeEditorModalProps = {
   isOpen: { codeBlockFor: "question" | "answer" } | null;
+  language: string;
+  questionCode: string;
+  answerCode: string;
   onClose: () => void;
   onSave: (
     language: string,
@@ -24,6 +27,7 @@ type CodeEditorModalProps = {
 const languages = [
   { value: "javascript", label: "JavaScript" },
   { value: "typescript", label: "TypeScript" },
+  { value: "zig", label: "Zig" },
   { value: "python", label: "Python" },
   { value: "java", label: "Java" },
   { value: "csharp", label: "C#" },
@@ -31,7 +35,6 @@ const languages = [
   { value: "go", label: "Go" },
   { value: "rust", label: "Rust" },
   { value: "php", label: "PHP" },
-  { value: "zig", label: "Zig" },
   { value: "ruby", label: "Ruby" },
 ];
 
@@ -39,15 +42,27 @@ export function CodeEditorModal({
   isOpen,
   onClose,
   onSave,
+  questionCode,
+  answerCode,
+  language,
 }: CodeEditorModalProps) {
-  const [language, setLanguage] = useState("");
+  const [currentLanguage, setLanguage] = useState("");
   const [code, setCode] = useState("");
+
+  useEffect(() => {
+    if (isOpen) {
+      const initialCode =
+        isOpen.codeBlockFor === "question" ? questionCode : answerCode;
+      setCode(initialCode);
+      setLanguage(language);
+    }
+  }, [isOpen, language, questionCode, answerCode]);
 
   const handleSave = () => {
     if (!isOpen) {
       return;
     }
-    onSave(language, code, isOpen.codeBlockFor);
+    onSave(currentLanguage, code, isOpen.codeBlockFor);
     handleClose();
     onClose();
   };
@@ -71,14 +86,18 @@ export function CodeEditorModal({
         <div className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="language">Language</Label>
-            <Combobox items={languages} onSelect={setLanguage} />
+            <Combobox
+              currentLanguage={language}
+              items={languages}
+              onSelect={setLanguage}
+            />
           </div>
           <div className="grid gap-2">
             <Label>Code</Label>
             <div className="overflow-hidden rounded-md border">
               <Editor
                 height="300px"
-                language={language.toLowerCase() || "plaintext"}
+                language={currentLanguage.toLowerCase() || "plaintext"}
                 onChange={(value) => setCode(value || "")}
                 options={{
                   minimap: { enabled: false },
