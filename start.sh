@@ -1,4 +1,4 @@
 #!/bin/bash
 cd apps/web
-npm run serve -- --port 3000 &
+npx serve -s dist -l 3000 &
 wait
