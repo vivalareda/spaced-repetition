@@ -11,10 +11,10 @@ import {
 import { useModalStore } from "@/hooks/use-modal-store";
 
 export const Route = createFileRoute("/new")({
-  component: RouteComponent,
+  component: NewPage,
 });
 
-function RouteComponent() {
+function NewPage() {
   const { onOpen } = useModalStore();
   const navigate = useNavigate();
   const { t } = useTranslation();

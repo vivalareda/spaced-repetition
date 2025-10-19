@@ -1,3 +1,4 @@
+import { ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE, MEGABYTE } from "@shared/types";
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
@@ -45,9 +46,13 @@ export const get = query({
 export const createCard = mutation({
   args: {
     question: v.string(),
-    answer: v.string(),
     questionCode: v.optional(v.string()),
+    questionFile: v.optional(v.id("_storage")),
+
+    answer: v.string(),
     answerCode: v.optional(v.string()),
+    answerFile: v.optional(v.id("_storage")),
+
     language: v.optional(v.string()),
     deck: v.optional(v.string()),
     tags: v.optional(v.array(v.string())),
@@ -68,10 +73,15 @@ export const createCard = mutation({
     const newCard = await ctx.db.insert("cards", {
       userId,
       deckId,
+
       question: args.question,
-      answer: args.answer,
       questionCode: args.questionCode,
+      questionFile: args.questionFile,
+
+      answer: args.answer,
       answerCode: args.answerCode,
+      answerFile: args.answerFile,
+
       language: args.language,
       tags: args.tags,
       nextReviewDate: Date.now(),
@@ -271,5 +281,36 @@ export const updateNextReviewDate = mutation({
       nextReviewDate,
       lastReviewedAt: now,
     });
+  },
+});
+
+export const getImageUrl = query({
+  args: {
+    imageStorageId: v.id("_storage"),
+  },
+  handler: async (ctx, args) => await ctx.storage.getUrl(args.imageStorageId),
+});
+
+export const generateUploadUrl = mutation({
+  args: {
+    fileSize: v.number(),
+    fileType: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await getCurrentUserId(ctx);
+
+    if (args.fileSize > MAX_FILE_SIZE) {
+      throw new Error(
+        `File too large. Maximum size is ${MAX_FILE_SIZE / MEGABYTE}MB`
+      );
+    }
+
+    if (!ALLOWED_IMAGE_TYPES.includes(args.fileType)) {
+      throw new Error(
+        `File type not allowed. Accepted types: ${ALLOWED_IMAGE_TYPES.join(", ")}`
+      );
+    }
+
+    return await ctx.storage.generateUploadUrl();
   },
 });

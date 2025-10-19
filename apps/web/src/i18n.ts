@@ -7,7 +7,7 @@ export const defaultNS = "translation";
 export const resources = {
   en: { translation: translationEN },
   fr: { translation: translationFR },
-} as const;
+} as const satisfies Record<string, Record<string, object>>;
 
 const i18n = createInstance();
 

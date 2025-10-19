@@ -1,3 +1,4 @@
+import type { CodeFormData } from "@shared/types";
 import { type ChangeEvent, useState } from "react";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { atomOneLight } from "react-syntax-highlighter/dist/esm/styles/hljs";
@@ -8,14 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 type CodeQuestionFormProps = {
-  formData: {
-    question: string;
-    questionCode: string;
-    answer: string;
-    answerCode: string;
-    deck: string;
-    language: string;
-  };
+  formData: CodeFormData;
   userDecks: string[] | undefined;
   onFieldChange: (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -203,9 +197,6 @@ export function CodeQuestionForm({
         onClose={handleEditorClose}
         onSave={handleCodeEditorSave}
         questionCode={formData.questionCode}
-        setCode={onQuestionCodeChange}
-        setField={onFieldChange}
-        setLanguage={onLanguageChange}
       />
     </>
   );

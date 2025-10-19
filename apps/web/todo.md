@@ -1,0 +1,5 @@
+- [ ] add file upload
+- [ ] add hints
+- [ ] add extra notes for cards
+- [x] add copy code block for answer
+- [x] make the copy code block button have feedback

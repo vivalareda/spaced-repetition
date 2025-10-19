@@ -11,9 +11,7 @@
   },
   "main": "./index.ts",
   "types": "./index.ts",
-  "dependencies": {
-    "@spaced-repetition-monorepo/backend": "workspace:*"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^22.17.2",
     "tsx": "^4.20.4",

@@ -65,6 +65,7 @@ export default {
       description: "Enter the details of your flashcard",
       textQuestion: "Text Question",
       codeQuestion: "Code Question",
+      imageQuestion: "Image Question",
       cancel: "Cancel",
       create: "Create Flashcard",
     },
@@ -289,5 +290,8 @@ export default {
       saveChanges: "Save Changes",
       cancel: "Cancel",
     },
+  },
+  copyCodeBlock: {
+    copied: "Code copied!",
   },
 } as const;

@@ -303,4 +303,7 @@ export default {
       cancel: "Annuler",
     },
   },
+  copyCodeBlock: {
+    copied: "Code copié !",
+  },
 } as const;

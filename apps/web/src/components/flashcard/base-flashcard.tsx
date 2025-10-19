@@ -1,10 +1,11 @@
 import type { Card as CardType, Difficulty } from "@shared/types";
-import { isCodeCard } from "@shared/types";
+import { isCodeCard, isImageCard } from "@shared/types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AnswerFlashCard } from "@/components/flashcard/answer-flashcard";
 import { CodeFlashCardContent } from "@/components/flashcard/code-flashcard-content";
 import { DifficultyButtons } from "@/components/flashcard/difficulty-buttons";
+import { ImageFlashCardContent } from "@/components/flashcard/image-flashcard-content";
 import {
   Card,
   CardContent,
@@ -13,12 +14,76 @@ import {
 } from "@/components/ui/card";
 
 type FlashCardProps = {
-  type: "text" | "code";
+  type: "text" | "code" | "image";
   card: CardType;
   totalQuestions: number;
   correctAnswer: string;
   questionIndex: number;
   onDifficultyClick: (cardId: CardType["_id"], difficulty: Difficulty) => void;
+};
+
+function FlashCardQuestion({ card }: { card: CardType }) {
+  const handleCopyCodeBlock = (codeBlock: string, language: string) => {
+    const formatedCodeBlock = `\`\`\`${language}\n${codeBlock}\n\`\`\``;
+    navigator.clipboard.writeText(formatedCodeBlock);
+  };
+
+  if (isCodeCard(card) && card.answerCode) {
+    return (
+      <CodeFlashCardContent
+        codeBlock={card.questionCode}
+        handleCopyCodeBlock={handleCopyCodeBlock}
+        language={card.language}
+        showCopyCodeBlockTooltip={true}
+      />
+    );
+  }
+
+  if (isImageCard(card) && card.questionFile) {
+    return <ImageFlashCardContent imageStorageId={card.questionFile} />;
+  }
+
+  return null;
+}
+
+function FlashCardAnswer({
+  card,
+  showAnswer,
+}: {
+  card: CardType;
+  showAnswer: boolean;
+}) {
+  const handleCopyCodeBlock = (codeBlock: string, language: string) => {
+    const formatedCodeBlock = `\`\`\`${language}\n${codeBlock}\n\`\`\``;
+    navigator.clipboard.writeText(formatedCodeBlock);
+  };
+
+  if (showAnswer && isCodeCard(card) && card.answerCode) {
+    return (
+      <CodeFlashCardContent
+        codeBlock={card.answerCode}
+        handleCopyCodeBlock={handleCopyCodeBlock}
+        language={card.language || "text"}
+        showCopyCodeBlockTooltip={true}
+      />
+    );
+  }
+
+  if (isImageCard(card) && card.answerFile) {
+    return <ImageFlashCardContent imageStorageId={card.answerFile} />;
+  }
+
+  return null;
+}
+
+const getCorrectAnswerText = (correctAnswer: string) => {
+  const parts = correctAnswer.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={part}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
 };
 
 export function FlashCard(props: FlashCardProps) {
@@ -42,22 +107,6 @@ export function FlashCard(props: FlashCardProps) {
     onDifficultyClick(cardId, questionDifficulty);
   };
 
-  const getCorrectAnswerText = () => {
-    const parts = correctAnswer.split(/(\*\*.*?\*\*)/g);
-
-    return parts.map((part) => {
-      if (part.startsWith("**") && part.endsWith("**")) {
-        return <strong key={part}>{part.slice(2, -2)}</strong>;
-      }
-      return part;
-    });
-  };
-
-  const handleCopyCodeBlock = (codeBlock: string, language: string) => {
-    const formatedCodeBlock = `\`\`\`${language}\n${codeBlock}\n\`\`\``;
-    navigator.clipboard.writeText(formatedCodeBlock);
-  };
-
   return (
     <>
       <Card
@@ -78,31 +127,19 @@ export function FlashCard(props: FlashCardProps) {
         </CardHeader>
 
         <CardContent className="grid grid-cols-1 gap-[clamp(12px,2vw,20px)] pt-4 text-left sm:grid-cols-2">
-          {isCodeCard(card) && card.questionCode ? (
-            <CodeFlashCardContent
-              codeBlock={card.questionCode}
-              handleCopyCodeBlock={handleCopyCodeBlock}
-              language={card.language || "text"}
-              showAnswer={showAnswer}
-            />
-          ) : null}
-          {showAnswer && isCodeCard(card) && card.answerCode ? (
-            <CodeFlashCardContent
-              codeBlock={card.answerCode}
-              handleCopyCodeBlock={handleCopyCodeBlock}
-              language={card.language || "text"}
-              showAnswer={showAnswer}
-            />
-          ) : null}
+          <FlashCardQuestion card={card} />
+          <FlashCardAnswer card={card} showAnswer={showAnswer} />
         </CardContent>
+
         <CardFooter className="flex justify-center pt-4">
           <AnswerFlashCard
-            getCorrectAnswerText={getCorrectAnswerText}
+            getCorrectAnswerText={() => getCorrectAnswerText(correctAnswer)}
             setShowAnswer={setShowAnswer}
             showAnswer={showAnswer}
           />
         </CardFooter>
       </Card>
+
       {showAnswer && (
         <DifficultyButtons
           card={card}
@@ -113,63 +150,3 @@ export function FlashCard(props: FlashCardProps) {
     </>
   );
 }
-
-// {
-//   /* {options.map((option) => ( */
-// }
-//
-// {
-//   /*   <Button */
-// }
-//
-// {
-//   /*     className={cn( */
-// }
-//
-// {
-//   /*       getPostSelectionButtonColor(option), */
-// }
-//
-// {
-//   /*       "w-full cursor-pointer rounded-lg border-2 border-border p-4 text-left transition-all duration-200 hover:border-primary/50 hover:bg-accent disabled:opacity-80" */
-// }
-//
-// {
-//   /*     )} */
-// }
-//
-// {
-//   /*     disabled={selected !== null} */
-// }
-//
-// {
-//   /*     key={option} */
-// }
-//
-// {
-//   /*     onClick={() => handleClick(option)} */
-// }
-//
-// {
-//   /*   > */
-// }
-//
-// {
-//   /*     <div className="flex items-center gap-3"> */
-// }
-//
-// {
-//   /*       <span className="text-base">{option}</span> */
-// }
-//
-// {
-//   /*     </div> */
-// }
-//
-// {
-//   /*   </Button> */
-// }
-//
-// {
-//   /* ))} */
-// }

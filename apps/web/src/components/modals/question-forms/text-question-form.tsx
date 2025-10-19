@@ -1,3 +1,4 @@
+import type { TextFormData } from "@shared/types";
 import type { ChangeEvent } from "react";
 import { DropdownMenu } from "@/components/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -5,11 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 type TextQuestionFormProps = {
-  formData: {
-    question: string;
-    answer: string;
-    deck: string;
-  };
+  formData: TextFormData;
   userDecks: string[] | undefined;
   onFieldChange: (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>

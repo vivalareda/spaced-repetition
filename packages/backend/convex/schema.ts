@@ -10,10 +10,15 @@ export default defineSchema({
   cards: defineTable({
     userId: v.id("users"),
     deckId: v.optional(v.id("decks")),
+
     question: v.string(),
-    answer: v.string(),
     questionCode: v.optional(v.string()),
+    questionFile: v.optional(v.id("_storage")),
+
+    answer: v.string(),
     answerCode: v.optional(v.string()),
+    answerFile: v.optional(v.id("_storage")),
+
     language: v.optional(v.string()),
     tags: v.optional(v.array(v.string())),
 

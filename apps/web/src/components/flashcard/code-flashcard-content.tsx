@@ -1,24 +1,18 @@
-import { Copy } from "lucide-react";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { atomOneLight } from "react-syntax-highlighter/dist/esm/styles/hljs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { CopyCodeBlockTooltip } from "@/components/modals/copy-code-block";
 
 type CodeFlashCardContentProps = {
   codeBlock: string;
   language: string;
-  showAnswer: boolean;
+  showCopyCodeBlockTooltip: boolean;
   handleCopyCodeBlock: (codeBlock: string, language: string) => void;
 };
 
 export function CodeFlashCardContent({
   codeBlock,
   language,
-  showAnswer,
+  showCopyCodeBlockTooltip,
   handleCopyCodeBlock,
 }: CodeFlashCardContentProps) {
   return (
@@ -36,24 +30,12 @@ export function CodeFlashCardContent({
       >
         {codeBlock}
       </SyntaxHighlighter>
-      {!showAnswer && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                aria-label="Copy flashcard content"
-                className="absolute right-12 bottom-2 text-muted-foreground transition hover:text-foreground"
-                onClick={() => handleCopyCodeBlock(codeBlock, language)}
-                type="button"
-              >
-                <Copy size={18} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Copy code block</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+      {showCopyCodeBlockTooltip && (
+        <CopyCodeBlockTooltip
+          codeBlock={codeBlock}
+          handleCopyCodeBlock={handleCopyCodeBlock}
+          language={language}
+        />
       )}
     </div>
   );
