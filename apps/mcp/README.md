@@ -24,4 +24,4 @@ Then, add the following to your `~/.remembr/config.json` file:
 }
 ```
 
-[Demo](./assets/demo-flashcard-mcp-2x-60fps.mp4)
+[Demo](./assets/demo.gif)
