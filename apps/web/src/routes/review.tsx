@@ -65,7 +65,6 @@ function ReviewPage() {
               </CarouselItem>
             );
           })}
-          <div>hello</div>
         </CarouselContent>
         <CarouselPrevious />
         <CarouselNext />
