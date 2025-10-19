@@ -1,4 +1,4 @@
-import type { Card as CardType } from "@shared/types";
+import type { Card as CardType } from "@spaced-repetition-monorepo/backend/convex/types/convex-types";
 import { Code, FileText, Trash2 } from "lucide-react";
 import { lazy, Suspense } from "react";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";

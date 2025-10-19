@@ -1,5 +1,8 @@
-import type { Card as CardType, Deck as DeckType } from "@shared/types";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
+import type {
+  Card as CardType,
+  Deck as DeckType,
+} from "@spaced-repetition-monorepo/backend/convex/types/convex-types";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { Code, FileText, FolderPlus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";

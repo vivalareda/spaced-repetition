@@ -1,6 +1,8 @@
-import type { Card } from "@shared/types";
-import { isCodeCard } from "@shared/types";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
+import {
+  type Card,
+  isCodeCard,
+} from "@spaced-repetition-monorepo/backend/convex/types/convex-types";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "convex/react";
 import { useState } from "react";

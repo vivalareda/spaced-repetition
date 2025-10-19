@@ -1,21 +1,3 @@
-import type { Doc } from "@spaced-repetition-monorepo/backend/convex/_generated/dataModel";
-
-// ============================================
-// Card Types
-// ============================================
-export type Card = Doc<"cards">;
-export type Deck = Doc<"decks">;
-export type ApiKey = Doc<"apiKeys">;
-export type Difficulty = "easy" | "medium" | "hard" | "again";
-
-export type TextCard = Omit<
-  Card,
-  `question${"Code" | "File"}` | `answer${"Code" | "File"}`
->;
-
-export type CodeCard = Required<Omit<Card, "questionFile" | "answerFile">>;
-export type ImageCard = Required<Omit<Card, "questionCode" | "answerCode">>;
-
 // ============================================
 // Form Types
 export type {
@@ -24,6 +6,8 @@ export type {
   ImageFormData,
   TextFormData,
 } from "./src/form-data.ts";
+
+export type Difficulty = "easy" | "medium" | "hard" | "again";
 // ============================================
 
 // ============================================
@@ -62,15 +46,3 @@ export function validateImageFile(file: File): ImageValidationResult {
 // ============================================
 export const MINIMUM_DEBOUNCE_TIME = 300;
 export const QUESTION_TYPES = ["text", "code", "image"] as const;
-
-// ============================================
-// Type Guards
-// ============================================
-export const isCodeCard = (c: Card): c is CodeCard =>
-  c.questionCode !== undefined || c.answerCode !== undefined;
-
-export const isImageCard = (c: Card): c is ImageCard =>
-  c.questionFile !== undefined || c.answerFile !== undefined;
-
-export const isTextCard = (c: Card): c is TextCard =>
-  !(isCodeCard(c) && isImageCard(c));

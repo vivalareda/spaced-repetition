@@ -1,5 +1,9 @@
-import type { Card as CardType, Difficulty } from "@shared/types";
-import { isCodeCard, isImageCard } from "@shared/types";
+import type { Difficulty } from "@shared/types";
+import {
+  type Card as CardType,
+  isCodeCard,
+  isImageCard,
+} from "@spaced-repetition-monorepo/backend/convex/types/convex-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AnswerFlashCard } from "@/components/flashcard/answer-flashcard";

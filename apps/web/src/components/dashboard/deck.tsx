@@ -1,4 +1,7 @@
-import type { Card as CardType, Deck as DeckType } from "@shared/types";
+import type {
+  Card as CardType,
+  Deck as DeckType,
+} from "@spaced-repetition-monorepo/backend/convex/types/convex-types";
 import { useNavigate } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { Card } from "@/components/dashboard/card";
