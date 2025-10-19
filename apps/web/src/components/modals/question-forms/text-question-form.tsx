@@ -1,5 +1,6 @@
 import type { TextFormData } from "@shared/types";
 import type { ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { DropdownMenu } from "@/components/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,10 +21,12 @@ export function TextQuestionForm({
   onFieldChange,
   onDeckSelect,
 }: TextQuestionFormProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="grid gap-4">
       <div className="grid gap-2">
-        <Label htmlFor="question">Question</Label>
+        <Label htmlFor="question">{t("modals.createCard.questionLabel")}</Label>
         <Input
           id="question"
           onChange={onFieldChange}
@@ -33,7 +36,7 @@ export function TextQuestionForm({
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="answer">Answer</Label>
+        <Label htmlFor="answer">{t("modals.createCard.answerLabel")}</Label>
         <Textarea
           id="answer"
           onChange={onFieldChange}
@@ -44,14 +47,14 @@ export function TextQuestionForm({
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="deck">Deck</Label>
+        <Label htmlFor="deck">{t("modals.createCard.deckLabel")}</Label>
         <DropdownMenu
           items={userDecks}
           onSelect={onDeckSelect}
           placeholder={
             userDecks?.length === 0
-              ? "You don't have any decks"
-              : "Select a deck"
+              ? t("modals.createCard.noDeckCreated")
+              : t("modals.createCard.selectDeck")
           }
         />
       </div>

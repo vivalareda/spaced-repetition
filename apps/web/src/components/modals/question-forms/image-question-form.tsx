@@ -3,6 +3,7 @@ import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
 import { useMutation } from "convex/react";
 import type { ChangeEvent } from "react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { DropdownMenu } from "@/components/dropdown-menu";
 import { FileUploadModal } from "@/components/modals/file-upload-modal";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ export function ImageQuestionForm({
   onFieldChange,
   onDeckSelect,
 }: ImageQuestionFormProps) {
+  const { t } = useTranslation();
   const generateUploadUrl = useMutation(api.cards.generateUploadUrl);
   const [fileUploadTarget, setFileUploadTarget] = useState<
     "question" | "answer" | null
@@ -73,7 +75,9 @@ export function ImageQuestionForm({
       setFileUploadTarget(null);
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Upload failed";
+        error instanceof Error
+          ? error.message
+          : t("modals.createCard.uploadFailed");
       setUploadError(errorMessage);
     }
   };
@@ -82,7 +86,9 @@ export function ImageQuestionForm({
     <>
       <div className="grid gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="question">Question</Label>
+          <Label htmlFor="question">
+            {t("modals.createCard.questionLabel")}
+          </Label>
           <Input
             id="question"
             onChange={onFieldChange}
@@ -92,7 +98,7 @@ export function ImageQuestionForm({
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="answer">Answer</Label>
+          <Label htmlFor="answer">{t("modals.createCard.answerLabel")}</Label>
           <Textarea
             id="answer"
             onChange={onFieldChange}
@@ -103,7 +109,7 @@ export function ImageQuestionForm({
         </div>
 
         <div className="grid gap-2">
-          <Label>Add Image File</Label>
+          <Label>{t("modals.createCard.addImageFileLabel")}</Label>
           <div className="flex gap-2 pt-2">
             <Button
               onClick={() => handleFileUploadClick("question")}
@@ -112,8 +118,8 @@ export function ImageQuestionForm({
               variant="neutral"
             >
               {formData.questionFile
-                ? "Edit Question File"
-                : "Add Question File"}
+                ? t("modals.createCard.editQuestionFile")
+                : t("modals.createCard.addQuestionFile")}
             </Button>
             <Button
               onClick={() => handleFileUploadClick("answer")}
@@ -121,7 +127,9 @@ export function ImageQuestionForm({
               type="button"
               variant="neutral"
             >
-              {formData.answerFile ? "Edit Answer File" : "Add Answer File"}
+              {formData.answerFile
+                ? t("modals.createCard.editAnswerFile")
+                : t("modals.createCard.addAnswerFile")}
             </Button>
           </div>
           {uploadError && (
@@ -130,14 +138,14 @@ export function ImageQuestionForm({
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="deck">Deck</Label>
+          <Label htmlFor="deck">{t("modals.createCard.deckLabel")}</Label>
           <DropdownMenu
             items={userDecks}
             onSelect={onDeckSelect}
             placeholder={
               userDecks?.length === 0
-                ? "You don't have any decks"
-                : "Select a deck"
+                ? t("modals.createCard.noDeckCreated")
+                : t("modals.createCard.selectDeck")
             }
           />
         </div>

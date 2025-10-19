@@ -1,5 +1,6 @@
 import type { CodeFormData } from "@shared/types";
 import { type ChangeEvent, useState } from "react";
+import { useTranslation } from "react-i18next";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { atomOneLight } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import { DropdownMenu } from "@/components/dropdown-menu";
@@ -29,6 +30,7 @@ export function CodeQuestionForm({
   onQuestionCodeChange,
   onAnswerCodeChange,
 }: CodeQuestionFormProps) {
+  const { t } = useTranslation();
   const PREVIEW_LINES = 3;
 
   const [isCodeEditorOpen, setIsCodeEditorOpen] = useState<{
@@ -72,7 +74,9 @@ export function CodeQuestionForm({
     <>
       <div className="grid gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="question">Question</Label>
+          <Label htmlFor="question">
+            {t("modals.createCard.questionLabel")}
+          </Label>
           <Textarea
             className="min-h-12"
             id="question"
@@ -86,7 +90,7 @@ export function CodeQuestionForm({
         <div className="grid grid-cols-1 gap-4">
           <div className="grid gap-2">
             <div className="flex flex-col gap-2">
-              <Label>Question Code</Label>
+              <Label>{t("modals.createCard.questionCodeLabel")}</Label>
               <Button
                 onClick={() => handleOpenCodeEditor("question")}
                 size="sm"
@@ -124,7 +128,7 @@ export function CodeQuestionForm({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="answer">Answer</Label>
+            <Label htmlFor="answer">{t("modals.createCard.answerLabel")}</Label>
             <Textarea
               className="min-h-12"
               id="answer"
@@ -137,7 +141,7 @@ export function CodeQuestionForm({
           <div className="grid gap-2">
             <div className="grid gap-2">
               <div className="flex flex-col gap-2">
-                <Label>Answer Code</Label>
+                <Label>{t("modals.createCard.answerCodeLabel")}</Label>
                 <Button
                   onClick={() => handleOpenCodeEditor("answer")}
                   size="sm"
@@ -177,14 +181,14 @@ export function CodeQuestionForm({
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="deck">Deck</Label>
+          <Label htmlFor="deck">{t("modals.createCard.deckLabel")}</Label>
           <DropdownMenu
             items={userDecks}
             onSelect={onDeckSelect}
             placeholder={
               userDecks?.length === 0
-                ? "You don't have any decks"
-                : "Select a deck"
+                ? t("modals.createCard.noDeckCreated")
+                : t("modals.createCard.selectDeck")
             }
           />
         </div>
