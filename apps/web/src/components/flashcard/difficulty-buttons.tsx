@@ -1,6 +1,6 @@
+import type { Card, Difficulty } from "@shared/types";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import type { Card, Difficulty } from "@/types";
 
 const HARD_DIFFICULTY_MULTIPLIER = 1.2;
 const EASY_DIFFICULTY_MULTIPLIER = 1.3;
@@ -87,7 +87,7 @@ export function DifficultyButtons({
 
     return (
       <div className="flex w-full justify-center p-4 pt-12">
-        <div className="fade-in animate-in text-center duration-500">
+        <div className="fade-in animate-in text-center duration-200">
           <p className="font-medium text-gray-700 text-lg">
             {t("flashcards.difficulty.nextReview")} in{" "}
             {formatDaysText(selectedDays)}
@@ -99,7 +99,7 @@ export function DifficultyButtons({
 
   return (
     <div
-      className={`flex w-full flex-col items-center justify-center gap-4 pt-12 transition-opacity duration-300 sm:flex-row md:gap-12 md:p-4 ${difficulty ? "opacity-0" : "opacity-100"}`}
+      className={`flex w-full flex-col items-center justify-center gap-4 pt-12 transition-opacity duration-200 sm:flex-row md:gap-12 md:p-4 ${difficulty ? "opacity-0" : "opacity-100"}`}
     >
       <Button
         className="fade-in slide-in-from-bottom-10 col-span-1 w-34 animate-in bg-green-300 duration-500"
