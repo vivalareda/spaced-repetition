@@ -1,8 +1,7 @@
 import { convexQuery } from "@convex-dev/react-query";
-import type { Card as CardType, Deck as DeckType } from "@shared/types";
+import type { Deck as DeckType } from "@shared/types";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useMutation } from "convex/react";
 import { BookOpen, CircleQuestionMark } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -15,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useModalStore } from "@/hooks/use-modal-store";
+import { useDeckDeletion } from "@/hooks/use-deck-delete";
 import { useUserData } from "@/hooks/use-user-data";
 
 export const Route = createFileRoute("/dashboard")({
@@ -36,11 +35,8 @@ export const Route = createFileRoute("/dashboard")({
 
 function RouteComponent() {
   const { t } = useTranslation();
-  const { onOpen } = useModalStore();
   const { userCards, userDecksWithCardCount } = useUserData();
-
-  const deleteDeck = useMutation(api.decks.deleteDeck);
-  const deleteCard = useMutation(api.cards.deleteCard);
+  const { confirmDeleteDeck, confirmDeleteCard } = useDeckDeletion();
 
   const [expandedDeck, setExpandedDeck] = useState<DeckType["_id"] | null>(
     null
@@ -67,22 +63,6 @@ function RouteComponent() {
       </div>
     );
   }
-
-  const handleDeleteDeck = async (deckId: DeckType["_id"]) => {
-    await deleteDeck({ deckId });
-  };
-
-  const handleDeleteCard = async (cardId: CardType["_id"]) => {
-    await deleteCard({ cardId });
-  };
-
-  const handleOpenConfirmationDeck = (deckId: DeckType["_id"]) => {
-    onOpen("confirm", true, () => handleDeleteDeck(deckId));
-  };
-
-  const handleOpenConfirmationCard = (cardId: CardType["_id"]) => {
-    onOpen("confirm", true, () => handleDeleteCard(cardId));
-  };
 
   const getCardsForDeck = (deckId: DeckType["_id"]) =>
     userCards.filter((card) => card.deckId === deckId);
@@ -114,7 +94,7 @@ function RouteComponent() {
             <StandaloneCard
               card={card}
               key={card._id}
-              onDeleteCard={handleOpenConfirmationCard}
+              onDeleteCard={confirmDeleteCard}
             />
           ))}
         </div>
@@ -147,8 +127,8 @@ function RouteComponent() {
                   deck={deck}
                   isExpanded={expandedDeck === deck._id}
                   key={deck._id}
-                  onDeleteCard={handleOpenConfirmationCard}
-                  onDeleteDeck={handleOpenConfirmationDeck}
+                  onDeleteCard={confirmDeleteCard}
+                  onDeleteDeck={confirmDeleteDeck}
                   onToggleExpansion={toggleDeckExpansion}
                 />
               ))}

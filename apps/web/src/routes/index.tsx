@@ -1,12 +1,12 @@
 import { convexQuery } from "@convex-dev/react-query";
-import type { Card as CardType, Deck } from "@shared/types";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { BookOpen, CalendarDays, ListTodo } from "lucide-react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useTranslation } from "react-i18next";
 import { Loading } from "@/components/dashboard/loading";
-import { Button } from "@/components/ui/button";
+import { HomePageActionButtons } from "@/components/home/action-buttons";
+import { ReviewQueueList } from "@/components/home/review-queue-section";
+import { StatsSection } from "@/components/home/stats-section";
 import {
   Card,
   CardContent,
@@ -44,142 +44,6 @@ export const Route = createFileRoute("/")({
     }
   },
 });
-
-type ReviewQueueListProps = {
-  cards: CardType[];
-  userDecks: Deck[];
-  emptyMessage: string;
-};
-
-function ReviewQueueList({
-  cards,
-  userDecks,
-  emptyMessage,
-}: ReviewQueueListProps) {
-  if (cards.length === 0) {
-    return <p className="text-foreground/70 text-sm">{emptyMessage}</p>;
-  }
-
-  return (
-    <ul className="space-y-4">
-      {cards.map((card) => (
-        <ReviewQueueCard card={card} key={card._id} userDecks={userDecks} />
-      ))}
-    </ul>
-  );
-}
-
-type ReviewQueueCardProps = {
-  card: CardType;
-  userDecks?: Deck[];
-};
-
-function ReviewQueueCard({ card, userDecks }: ReviewQueueCardProps) {
-  const { t } = useTranslation();
-
-  const deckName =
-    userDecks?.find((deck) => deck._id === card.deckId)?.deckName ||
-    t("index.reviewQueue.unclassified");
-
-  const repetitionLabel =
-    card.repetitions === 1
-      ? t("index.reviewQueue.repetition")
-      : t("index.reviewQueue.repetitions");
-
-  return (
-    <li className="rounded-2xl border border-border/60 bg-secondary-background/60 p-4 backdrop-blur">
-      <p className="font-medium text-foreground">{card.question}</p>
-      <div className="mt-2 flex flex-wrap items-center gap-3 text-foreground/70 text-xs">
-        <span className="inline-flex items-center rounded-full bg-main/10 px-2 py-0.5 font-medium text-main">
-          {deckName}
-        </span>
-        <span>
-          {card.repetitions} {repetitionLabel}
-        </span>
-      </div>
-    </li>
-  );
-}
-
-type StatsCardProps = {
-  label: string;
-  value: number;
-  description: string;
-  icon: React.ReactNode;
-};
-
-function StatsCard({ label, value, description, icon }: StatsCardProps) {
-  return (
-    <Card className="border-border/60 bg-white/90 backdrop-blur">
-      <CardHeader className="flex flex-row items-start justify-between">
-        <div className="space-y-2">
-          <CardDescription>{label}</CardDescription>
-          <CardTitle className="font-heading text-4xl text-foreground">
-            {value}
-          </CardTitle>
-        </div>
-        <span className="flex size-11 items-center justify-center rounded-full bg-main/10 text-main">
-          {icon}
-        </span>
-      </CardHeader>
-      <CardContent className="text-foreground/70 text-sm">
-        {description}
-      </CardContent>
-    </Card>
-  );
-}
-
-type PrimaryActionButtonProps = {
-  dueTodayCount: number;
-  onCreateCard: () => void;
-  onReviewCard: () => void;
-};
-
-function PrimaryActionButton({
-  dueTodayCount,
-  onCreateCard,
-  onReviewCard,
-}: PrimaryActionButtonProps) {
-  const { t } = useTranslation();
-
-  if (dueTodayCount > 0) {
-    return (
-      <Button className="w-full md:w-auto" onClick={onReviewCard} size="lg">
-        {t("index.hero.startReview", { count: dueTodayCount })}
-      </Button>
-    );
-  }
-
-  return (
-    <Button className="w-full md:w-auto" onClick={onCreateCard} size="lg">
-      {t("index.hero.createFirstCard")}
-    </Button>
-  );
-}
-
-type ActionsButtonsProps = {
-  onCreateCard: () => void;
-  onReviewDeck: () => void;
-};
-
-function ActionsButtons({ onCreateCard, onReviewDeck }: ActionsButtonsProps) {
-  const { t } = useTranslation();
-  const { onOpen } = useModalStore();
-
-  return (
-    <>
-      <Button onClick={onCreateCard} size="sm">
-        {t("index.buttons.createFlashcard")}
-      </Button>
-      <Button onClick={onReviewDeck} size="sm">
-        {t("index.buttons.reviewByDeck")}
-      </Button>
-      <Button onClick={() => onOpen("create-deck", true)} size="sm">
-        {t("index.buttons.createDeck")}
-      </Button>
-    </>
-  );
-}
 
 function Index() {
   const { t } = useTranslation();
@@ -245,20 +109,12 @@ function Index() {
             <p className="max-w-2xl text-base text-foreground/70">
               {heroSubtitle}
             </p>
-            <div className="space-y-4">
-              <PrimaryActionButton
-                dueTodayCount={dueTodayCount}
-                onCreateCard={handleCreateCard}
-                onReviewCard={handleReviewCard}
-              />
-
-              <div className="flex flex-wrap gap-2">
-                <ActionsButtons
-                  onCreateCard={handleCreateCard}
-                  onReviewDeck={handleReviewDeck}
-                />
-              </div>
-            </div>
+            <HomePageActionButtons
+              dueTodayCount={dueTodayCount}
+              handleCreateCard={handleCreateCard}
+              handleReviewCard={handleReviewCard}
+              handleReviewDeck={handleReviewDeck}
+            />
           </div>
 
           <div className="w-full max-w-sm rounded-2xl border border-border/60 bg-secondary-background/60 p-6 backdrop-blur">
@@ -288,39 +144,10 @@ function Index() {
       <div className="flex flex-col gap-6 lg:flex-row">
         <section className="space-y-6">
           <div className="grid grid-cols-2 gap-5 md:grid-cols-3">
-            <StatsCard
-              description={
-                dueTodayCount > 0
-                  ? t("index.stats.todayWithReviews")
-                  : t("index.stats.todayNoReviews")
-              }
-              icon={
-                <CalendarDays aria-hidden className="size-5">
-                  <title>Due today icon</title>
-                </CalendarDays>
-              }
-              label={t("index.stats.dueToday")}
-              value={dueTodayCount}
-            />
-            <StatsCard
-              description={t("index.stats.cardsDescription")}
-              icon={
-                <ListTodo aria-hidden className="size-5">
-                  <title>Learning cards icon</title>
-                </ListTodo>
-              }
-              label={t("index.stats.cards")}
-              value={totalCards}
-            />
-            <StatsCard
-              description={t("index.stats.decksDescription")}
-              icon={
-                <BookOpen aria-hidden className="size-5">
-                  <title>Subjects icon</title>
-                </BookOpen>
-              }
-              label={t("index.stats.decksTitle")}
-              value={decks}
+            <StatsSection
+              decks={decks}
+              dueTodayCount={dueTodayCount}
+              totalCards={totalCards}
             />
           </div>
 

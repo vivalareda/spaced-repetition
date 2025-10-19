@@ -1,8 +1,14 @@
 import type { Card as CardType } from "@shared/types";
 import { Code, FileText, Trash2 } from "lucide-react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { lazy, Suspense } from "react";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Button } from "@/components/ui/button";
+
+const SyntaxHighlighter = lazy(() =>
+  import("react-syntax-highlighter").then((mod) => ({
+    default: mod.Prism,
+  }))
+);
 
 type CardProps = {
   card: CardType;
@@ -29,19 +35,25 @@ export function Card({ card, onDeleteCard }: CardProps) {
         {card.questionCode && (
           <div className="mt-2 pr-2">
             <p className="mb-1 text-gray-600 text-xs">Question Code:</p>
-            <SyntaxHighlighter
-              customStyle={{
-                padding: "8px",
-                fontSize: "12px",
-                maxHeight: "120px",
-                overflow: "auto",
-                margin: 0,
-              }}
-              language={card.language?.toLowerCase() || "text"}
-              style={oneLight}
+            <Suspense
+              fallback={
+                <div className="text-gray-400 text-xs">Loading code...</div>
+              }
             >
-              {card.questionCode}
-            </SyntaxHighlighter>
+              <SyntaxHighlighter
+                customStyle={{
+                  padding: "8px",
+                  fontSize: "12px",
+                  maxHeight: "120px",
+                  overflow: "auto",
+                  margin: 0,
+                }}
+                language={card.language?.toLowerCase() || "text"}
+                style={oneLight}
+              >
+                {card.questionCode}
+              </SyntaxHighlighter>
+            </Suspense>
           </div>
         )}
       </div>

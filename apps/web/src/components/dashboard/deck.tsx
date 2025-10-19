@@ -1,9 +1,9 @@
 import type { Card as CardType, Deck as DeckType } from "@shared/types";
 import { useNavigate } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
+import { Card } from "@/components/dashboard/card";
 import { Button } from "@/components/ui/button";
 import { useSessionStore } from "@/hooks/use-session-store";
-import { Card } from "./card";
 
 type DeckWithCards = {
   _id: DeckType["_id"];

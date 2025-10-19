@@ -1,5 +1,4 @@
-import Editor from "@monaco-editor/react";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Combobox } from "@/components/combobox";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +36,8 @@ const languages = [
   { value: "php", label: "PHP" },
   { value: "ruby", label: "Ruby" },
 ];
+
+const Editor = lazy(() => import("@monaco-editor/react"));
 
 export function CodeEditorModal({
   isOpen,
@@ -95,24 +96,26 @@ export function CodeEditorModal({
           <div className="grid gap-2">
             <Label>Code</Label>
             <div className="overflow-hidden rounded-md border">
-              <Editor
-                height="300px"
-                language={currentLanguage.toLowerCase() || "plaintext"}
-                onChange={(value) => setCode(value || "")}
-                options={{
-                  minimap: { enabled: false },
-                  scrollBeyondLastLine: false,
-                  fontSize: 14,
-                  lineNumbers: "on",
-                  wordWrap: "on",
-                  folding: true,
-                  lineDecorationsWidth: 10,
-                  lineNumbersMinChars: 3,
-                  automaticLayout: true,
-                }}
-                theme="vs-light"
-                value={code}
-              />
+              <Suspense fallback={<div>Loading...</div>}>
+                <Editor
+                  height="300px"
+                  language={currentLanguage.toLowerCase() || "plaintext"}
+                  onChange={(value) => setCode(value || "")}
+                  options={{
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    fontSize: 14,
+                    lineNumbers: "on",
+                    wordWrap: "on",
+                    folding: true,
+                    lineDecorationsWidth: 10,
+                    lineNumbersMinChars: 3,
+                    automaticLayout: true,
+                  }}
+                  theme="vs-light"
+                  value={code}
+                />
+              </Suspense>
             </div>
           </div>
         </div>
