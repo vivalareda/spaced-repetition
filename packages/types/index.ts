@@ -23,7 +23,7 @@ export type {
   FormDataType,
   ImageFormData,
   TextFormData,
-} from "@/form-data";
+} from "./src/form-data.ts";
 // ============================================
 
 // ============================================
