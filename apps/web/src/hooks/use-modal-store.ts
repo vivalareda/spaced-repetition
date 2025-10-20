@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+type QuestionType = "text" | "code" | "image";
+
 type ModalType =
   | "create-card"
   | "create-deck"
@@ -15,9 +17,11 @@ type ModalStore = {
   isOpen: boolean;
   modalData: null;
   onSubmit?: () => void | Promise<void>;
+  questionType?: QuestionType;
   onOpen: (
     type: ModalType,
     isOpen: boolean,
+    questionType?: QuestionType,
     onSubmit?: () => void | Promise<void>
   ) => void;
   onClose: () => void;
@@ -28,6 +32,7 @@ export const useModalStore = create<ModalStore>((set) => ({
   isOpen: false,
   modalData: null,
   onSubmit: undefined,
-  onOpen: (type, isOpen, onSubmit) => set({ type, isOpen, onSubmit }),
+  onOpen: (type, isOpen, questionType, onSubmit) =>
+    set({ type, isOpen, questionType, onSubmit }),
   onClose: () => set({ type: null, isOpen: false }),
 }));

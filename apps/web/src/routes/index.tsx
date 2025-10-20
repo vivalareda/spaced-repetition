@@ -1,7 +1,6 @@
 import { convexQuery } from "@convex-dev/react-query";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useHotkeys } from "react-hotkeys-hook";
 import { useTranslation } from "react-i18next";
 import { Loading } from "@/components/dashboard/loading";
 import { HomePageActionButtons } from "@/components/home/action-buttons";
@@ -15,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { UsersWithoutData } from "@/components/user-without-data";
+import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut";
 import { useModalStore } from "@/hooks/use-modal-store";
 import { useSessionStore } from "@/hooks/use-session-store";
 import { useUserData } from "@/hooks/use-user-data";
@@ -52,9 +52,7 @@ function Index() {
   const { onOpen } = useModalStore();
   const { startSession } = useSessionStore();
   const navigate = useNavigate();
-  useHotkeys("c", () => {
-    onOpen("create-card", true);
-  });
+  useKeyboardShortcut();
 
   if (isLoading) {
     return <Loading />;

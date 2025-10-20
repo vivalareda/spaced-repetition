@@ -1,5 +1,5 @@
 import type { FormDataType, QUESTION_TYPES } from "@shared/types";
-import { type ChangeEvent, useReducer } from "react";
+import { type ChangeEvent, useMemo, useReducer } from "react";
 
 type FormAction =
   | { type: "CHANGE_TYPE"; payload: "text" | "code" | "image" }
@@ -84,39 +84,45 @@ export function useCardForm() {
     tags: [],
   });
 
-  const handlers = {
-    questionTypeChange: (newType: (typeof QUESTION_TYPES)[number]) =>
-      dispatch({ type: "CHANGE_TYPE", payload: newType }),
-    fieldChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-      dispatch({
-        type: "UPDATE_FIELD",
-        payload: { field: event.target.id, value: event.target.value },
-      }),
-    deckSelect: (deck: string) => dispatch({ type: "SET_DECK", payload: deck }),
-    languageChange: (language: string) =>
-      dispatch({
-        type: "UPDATE_FIELD",
-        payload: { field: "language", value: language },
-      }),
-    questionCodeChange: (code: string) =>
-      dispatch({
-        type: "UPDATE_FIELD",
-        payload: { field: "questionCode", value: code },
-      }),
-    answerCodeChange: (code: string) =>
-      dispatch({
-        type: "UPDATE_FIELD",
-        payload: { field: "answerCode", value: code },
-      }),
-    fileUploadSave: (storageId: string, uploadFor: "question" | "answer") =>
-      dispatch({
-        type: "SET_FILE",
-        payload: {
-          field: uploadFor === "question" ? "questionFile" : "answerFile",
-          value: storageId,
-        },
-      }),
-  };
+  const handlers = useMemo(
+    () => ({
+      questionTypeChange: (newType: (typeof QUESTION_TYPES)[number]) =>
+        dispatch({ type: "CHANGE_TYPE", payload: newType }),
+      fieldChange: (
+        event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      ) =>
+        dispatch({
+          type: "UPDATE_FIELD",
+          payload: { field: event.target.id, value: event.target.value },
+        }),
+      deckSelect: (deck: string) =>
+        dispatch({ type: "SET_DECK", payload: deck }),
+      languageChange: (language: string) =>
+        dispatch({
+          type: "UPDATE_FIELD",
+          payload: { field: "language", value: language },
+        }),
+      questionCodeChange: (code: string) =>
+        dispatch({
+          type: "UPDATE_FIELD",
+          payload: { field: "questionCode", value: code },
+        }),
+      answerCodeChange: (code: string) =>
+        dispatch({
+          type: "UPDATE_FIELD",
+          payload: { field: "answerCode", value: code },
+        }),
+      fileUploadSave: (storageId: string, uploadFor: "question" | "answer") =>
+        dispatch({
+          type: "SET_FILE",
+          payload: {
+            field: uploadFor === "question" ? "questionFile" : "answerFile",
+            value: storageId,
+          },
+        }),
+    }),
+    []
+  );
 
   return {
     formData,

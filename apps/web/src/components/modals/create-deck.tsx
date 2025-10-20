@@ -44,6 +44,18 @@ export function CreateDeckModal() {
     }
     navigate({ to: "/" });
     closeModal();
+    setFormData({
+      deckName: "",
+      deckDescription: "",
+    });
+  };
+
+  const handleCloseModal = () => {
+    setFormData({
+      deckName: "",
+      deckDescription: "",
+    });
+    closeModal();
   };
 
   const handleChange = (
@@ -58,7 +70,7 @@ export function CreateDeckModal() {
   };
 
   return (
-    <Dialog onOpenChange={closeModal} open={isModalOpen}>
+    <Dialog onOpenChange={handleCloseModal} open={isModalOpen}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("modals.createDeck.title")}</DialogTitle>
@@ -70,13 +82,22 @@ export function CreateDeckModal() {
         <div className="flex flex-col gap-6">
           <div className="grid gap-2">
             <Label htmlFor="deckName">{t("modals.createDeck.nameLabel")}</Label>
-            <Input id="deckName" onChange={handleChange} required />
+            <Input
+              id="deckName"
+              onChange={handleChange}
+              required
+              value={formData.deckName}
+            />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="deckDescription">
               {t("modals.createDeck.descriptionLabel")}
             </Label>
-            <Textarea id="deckDescription" onChange={handleChange} />
+            <Textarea
+              id="deckDescription"
+              onChange={handleChange}
+              value={formData.deckDescription}
+            />
           </div>
           <DialogFooter>
             <Button onClick={closeModal}>

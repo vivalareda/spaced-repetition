@@ -23,7 +23,7 @@ import { useModalStore } from "@/hooks/use-modal-store";
 
 export function CreateCardModal() {
   const { t } = useTranslation();
-  const { onSubmit, isOpen, onClose, type } = useModalStore();
+  const { onSubmit, isOpen, onClose, type, questionType } = useModalStore();
   const navigate = useNavigate();
   const [shouldFetchDecks, setShouldFetchDecks] = useState(false);
   const { formData, dispatch, handlers } = useCardForm();
@@ -47,6 +47,12 @@ export function CreateCardModal() {
     }
     setShouldFetchDecks(false);
   }, [isModalOpen]);
+
+  useEffect(() => {
+    if (isModalOpen && questionType) {
+      handlers.questionTypeChange(questionType);
+    }
+  }, [isModalOpen, questionType, handlers]);
 
   const currentQuestionType = formData.type;
 
