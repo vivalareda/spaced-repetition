@@ -64,6 +64,12 @@ const formReducer = (state: FormDataType, action: FormAction): FormDataType => {
         answer: "",
         deck: "",
         tags: [],
+        ...(state.type === "code" && {
+          questionCode: "",
+          answerCode: "",
+          language: "",
+        }),
+        ...(state.type === "image" && { questionFile: "", answerFile: "" }),
       };
     case "SET_FILE":
       return {
