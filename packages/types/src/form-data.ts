@@ -11,8 +11,8 @@ export type FormDataType = BaseFormData &
     | {
         type: "code";
         language: string;
-        questionCode: string;
-        answerCode: string;
+        questionCode?: string;
+        answerCode?: string;
       }
     | { type: "image"; questionFile?: string; answerFile?: string }
   );

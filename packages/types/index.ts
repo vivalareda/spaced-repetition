@@ -1,11 +1,12 @@
 // ============================================
 // Form Types
+
 export type {
   CodeFormData,
   FormDataType,
   ImageFormData,
   TextFormData,
-} from "./src/form-data.ts";
+} from "./src/form-data";
 
 export type Difficulty = "easy" | "medium" | "hard" | "again";
 // ============================================

@@ -1,13 +1,11 @@
-import {
-  type CodeFormData,
-  type FormDataType,
-  MINIMUM_DEBOUNCE_TIME,
-  QUESTION_TYPES,
-} from "@shared/types";
+import type { FormDataType } from "@shared/types";
+import { MINIMUM_DEBOUNCE_TIME, QUESTION_TYPES } from "@shared/types";
+import { isImageFormData } from "@shared/types/form-data";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
+import type { Id } from "@spaced-repetition-monorepo/backend/convex/_generated/dataModel";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
-import { type ChangeEvent, useEffect, useState } from "react";
+import { type ChangeEvent, useEffect, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CodeQuestionForm } from "@/components/modals/question-forms/code-question-form";
 import { ImageQuestionForm } from "@/components/modals/question-forms/image-question-form";
@@ -23,6 +21,16 @@ import {
 } from "@/components/ui/dialog";
 import { useModalStore } from "@/hooks/use-modal-store";
 
+type FormAction =
+  | { type: "CHANGE_TYPE"; payload: "text" | "code" | "image" }
+  | { type: "UPDATE_FIELD"; payload: { field: string; value: string } }
+  | { type: "SET_DECK"; payload: string }
+  | {
+      type: "SET_FILE";
+      payload: { field: "questionFile" | "answerFile"; value: string };
+    }
+  | { type: "RESET" };
+
 export function CreateCardModal() {
   const { t } = useTranslation();
   const { onSubmit, isOpen, onClose, type } = useModalStore();
@@ -31,8 +39,6 @@ export function CreateCardModal() {
 
   const isModalOpen = isOpen && type === "create-card";
   const createCard = useMutation(api.cards.createCard);
-  const [questionType, setQuestionType] =
-    useState<(typeof QUESTION_TYPES)[number]>("text");
 
   const shouldQuery = isModalOpen && shouldFetchDecks;
   const userDecks = useQuery(
@@ -51,7 +57,74 @@ export function CreateCardModal() {
     setShouldFetchDecks(false);
   }, [isModalOpen]);
 
-  const [formData, setFormData] = useState<FormDataType>({
+  const formReducer = (
+    state: FormDataType,
+    action: FormAction
+  ): FormDataType => {
+    switch (action.type) {
+      case "CHANGE_TYPE":
+        switch (action.payload) {
+          case "code":
+            return {
+              type: "code",
+              questionCode: "",
+              answerCode: "",
+              language: "",
+              deck: state.deck,
+              tags: state.tags,
+              question: state.question,
+              answer: state.answer,
+            };
+          case "image":
+            return {
+              type: "image",
+              questionFile: "",
+              answerFile: "",
+              answer: state.answer,
+              deck: state.deck,
+              tags: state.tags,
+              question: state.question,
+            };
+          case "text":
+            return {
+              type: "text",
+              question: state.question,
+              answer: state.answer,
+              deck: state.deck,
+              tags: state.tags,
+            };
+          default:
+            throw new Error(`Invalid type, ${action satisfies never}`);
+        }
+      case "UPDATE_FIELD":
+        return {
+          ...state,
+          [action.payload.field]: action.payload.value,
+        };
+      case "SET_DECK":
+        return {
+          ...state,
+          deck: action.payload,
+        };
+      case "RESET":
+        return {
+          type: "text",
+          question: "",
+          answer: "",
+          deck: "",
+          tags: [],
+        };
+      case "SET_FILE":
+        return {
+          ...state,
+          [action.payload.field]: action.payload.value,
+        };
+      default:
+        throw new Error(`Invalid action type, ${action satisfies never}`);
+    }
+  };
+
+  const [formData, dispatch] = useReducer(formReducer, {
     type: "text",
     question: "",
     answer: "",
@@ -59,53 +132,21 @@ export function CreateCardModal() {
     tags: [],
   });
 
-  const handleQuestionTypeChange = (
-    newType: (typeof QUESTION_TYPES)[number]
-  ) => {
-    setQuestionType(newType);
-    switch (newType) {
-      case "code":
-        setFormData({
-          ...formData,
-          type: "code",
-          questionCode: "",
-          answerCode: "",
-          language: "",
-          answer: "",
-        });
-
-        break;
-      case "image":
-        setFormData({
-          ...formData,
-          type: "image",
-          questionFile: "",
-          answerFile: "",
-          answer: "",
-        });
-        break;
-      case "text":
-        setFormData({
-          ...formData,
-          type: "text",
-          answer: "",
-        });
-        break;
-      default:
-        throw new Error(`Invalid type, ${newType satisfies never}`);
-    }
-  };
+  const currentQuestionType = formData.type;
 
   const handleSubmit = () => {
     const { type: _, ...dataWithoutType } = formData;
 
-    const sanitizedData = {
-      ...dataWithoutType,
-      questionFile: dataWithoutType.questionFile || undefined,
-      answerFile: dataWithoutType.answerFile || undefined,
-    };
+    const sanitizedData = isImageFormData(formData)
+      ? {
+          ...dataWithoutType,
+          questionFile: (formData.questionFile || undefined) as Id<"_storage">,
+          answerFile: (formData.answerFile || undefined) as Id<"_storage">,
+        }
+      : dataWithoutType;
 
     createCard(sanitizedData);
+
     if (onSubmit) {
       onSubmit();
     }
@@ -115,18 +156,13 @@ export function CreateCardModal() {
 
   const closeModal = () => {
     onClose();
-    setFormData({
-      type: "text",
-      question: "",
-      answer: "",
-      deck: "",
-      tags: [],
-      questionCode: "",
-      answerCode: "",
-      language: "",
-      questionFile: "",
-      answerFile: "",
-    });
+    dispatch({ type: "RESET" });
+  };
+
+  const handleQuestionTypeChange = (
+    newType: (typeof QUESTION_TYPES)[number]
+  ) => {
+    dispatch({ type: "CHANGE_TYPE", payload: newType });
   };
 
   const handleChange = (
@@ -134,62 +170,50 @@ export function CreateCardModal() {
   ) => {
     const name = event.target.id;
     const value = event.target.value;
-
-    setFormData((prevState: FormDataType) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    dispatch({
+      type: "UPDATE_FIELD",
+      payload: { field: name, value },
+    });
   };
 
   const handleDeckSelect = (deck: string) => {
-    setFormData((prevState: FormDataType) => ({
-      ...prevState,
-      deck,
-    }));
+    dispatch({ type: "SET_DECK", payload: deck });
   };
 
   const handleLanguageChange = (language: string) => {
-    setFormData((prevState: CodeFormData) => ({
-      ...prevState,
-      language,
-    }));
+    dispatch({
+      type: "UPDATE_FIELD",
+      payload: { field: "language", value: language },
+    });
   };
 
   const handleQuestionCodeChange = (code: string) => {
-    setFormData((prevState: FormDataType) => ({
-      ...prevState,
-      questionCode: code,
-    }));
+    dispatch({
+      type: "UPDATE_FIELD",
+      payload: { field: "questionCode", value: code },
+    });
   };
 
   const handleAnswerCodeChange = (code: string) => {
-    setFormData((prevState: FormDataType) => ({
-      ...prevState,
-      answerCode: code,
-    }));
+    dispatch({
+      type: "UPDATE_FIELD",
+      payload: { field: "answerCode", value: code },
+    });
   };
 
   const handleFileUploadSave = (
     storageId: string,
     uploadFor: "question" | "answer"
   ) => {
-    if (uploadFor === "question") {
-      setFormData((prevState: FormDataType) => ({
-        ...prevState,
-        questionFile: storageId,
-      }));
-    }
-
-    if (uploadFor === "answer") {
-      setFormData((prevState: FormDataType) => ({
-        ...prevState,
-        answerFile: storageId,
-      }));
-    }
+    const field = uploadFor === "question" ? "questionFile" : "answerFile";
+    dispatch({
+      type: "SET_FILE",
+      payload: { field, value: storageId },
+    });
   };
 
   const renderQuestionForm = () => {
-    switch (questionType) {
+    switch (formData.type) {
       case "code":
         return (
           <CodeQuestionForm
@@ -222,7 +246,7 @@ export function CreateCardModal() {
           />
         );
       default:
-        throw new Error(`Invalid type, ${questionType satisfies never}`);
+        throw new Error(`Invalid type, ${formData satisfies never}`);
     }
   };
 
@@ -233,7 +257,7 @@ export function CreateCardModal() {
         onClick={() => handleQuestionTypeChange(qt)}
         size="sm"
         type="button"
-        variant={questionType === qt ? "noShadow" : "neutral"}
+        variant={currentQuestionType === qt ? "noShadow" : "neutral"}
       >
         {t(`modals.createCard.${qt}Question`)}
       </Button>
@@ -243,7 +267,7 @@ export function CreateCardModal() {
     <Dialog onOpenChange={closeModal} open={isModalOpen}>
       <DialogContent
         className={`max-h-[85vh] overflow-y-auto ${
-          questionType === "code"
+          currentQuestionType === "code"
             ? "max-w-4xl sm:max-w-2xl"
             : "max-w-2xl sm:max-w-xl"
         }`}

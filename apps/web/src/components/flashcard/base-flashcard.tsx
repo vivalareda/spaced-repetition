@@ -3,7 +3,7 @@ import {
   type Card as CardType,
   isCodeCard,
   isImageCard,
-} from "@spaced-repetition-monorepo/backend/convex/types/convex-types";
+} from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AnswerFlashCard } from "@/components/flashcard/answer-flashcard";
