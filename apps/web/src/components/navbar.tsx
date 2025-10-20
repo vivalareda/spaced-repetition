@@ -71,15 +71,19 @@ function AuthenticatedNav({
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-2">
-        <Button onClick={onHomeClick} size="sm">
-          {t("navbar.home")}
-        </Button>
+        <div className="hidden md:flex">
+          <Button onClick={onHomeClick} size="sm">
+            {t("navbar.home")}
+          </Button>
+        </div>
         <Button onClick={onDashboardClick} size="sm">
           {t("navbar.dashboard")}
         </Button>
-        <Button onClick={onSettingsClick} size="icon" variant="neutral">
-          <Settings className="h-4 w-4" />
-        </Button>
+        <div className="hidden lg:flex">
+          <Button onClick={onSettingsClick} size="icon" variant="neutral">
+            <Settings className="h-4 w-4" />
+          </Button>
+        </div>
         <Button onClick={handleSignOut} size="sm" variant="neutral">
           {t("navbar.signOut")}
         </Button>
