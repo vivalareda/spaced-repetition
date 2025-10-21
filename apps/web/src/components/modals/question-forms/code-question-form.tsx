@@ -195,12 +195,12 @@ export function CodeQuestionForm({
       </div>
 
       <CodeEditorModal
-        answerCode={formData.answerCode}
+        answerCode={formData.answerCode || ""}
         isOpen={isCodeEditorOpen}
         language={formData.language}
         onClose={handleEditorClose}
         onSave={handleCodeEditorSave}
-        questionCode={formData.questionCode}
+        questionCode={formData.questionCode || ""}
       />
     </>
   );

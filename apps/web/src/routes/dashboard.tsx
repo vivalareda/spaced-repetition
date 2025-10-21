@@ -1,6 +1,6 @@
 import { convexQuery } from "@convex-dev/react-query";
-import type { Deck as DeckType } from "@shared/types";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
+import type { Deck as DeckType } from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { BookOpen, CircleQuestionMark } from "lucide-react";
 import { useState } from "react";
