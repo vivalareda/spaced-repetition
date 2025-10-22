@@ -1,4 +1,4 @@
-import type { Card } from "@shared/types";
+import type { Card } from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
 import { create } from "zustand";
 
 type SessionStore = {

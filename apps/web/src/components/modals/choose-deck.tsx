@@ -1,5 +1,5 @@
-import type { Deck as DeckType } from "@shared/types";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
+import type { Deck } from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
 import { useNavigate } from "@tanstack/react-router";
 import { useConvexAuth, useQuery } from "convex/react";
 import { BookOpen, Users } from "lucide-react";
@@ -21,7 +21,7 @@ export function ChooseDeckModal() {
   const { startSession } = useSessionStore();
   const navigate = useNavigate();
   const { isAuthenticated } = useConvexAuth();
-  const [selectedDeckId, setSelectedDeckId] = useState<DeckType["_id"] | null>(
+  const [selectedDeckId, setSelectedDeckId] = useState<Deck["_id"] | null>(
     null
   );
 
@@ -34,7 +34,7 @@ export function ChooseDeckModal() {
     isAuthenticated && isModalOpen ? undefined : "skip"
   );
 
-  const handleDeckSelect = (deckId: DeckType["_id"]) => {
+  const handleDeckSelect = (deckId: Deck["_id"]) => {
     if (!deckId) {
       return;
     }
