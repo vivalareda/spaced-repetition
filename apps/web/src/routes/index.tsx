@@ -1,11 +1,11 @@
 import { convexQuery } from "@convex-dev/react-query";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { CalendarDays } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Loading } from "@/components/dashboard/loading";
 import { HomePageActionButtons } from "@/components/home/action-buttons";
 import { ReviewQueueList } from "@/components/home/review-queue-section";
-import { StatsSection } from "@/components/home/stats-section";
 import {
   Card,
   CardContent,
@@ -44,6 +44,57 @@ export const Route = createFileRoute("/")({
     }
   },
 });
+
+type HomePageStatsCardProps = {
+  dueTodayCount: number;
+  totalCards: number;
+  decks: number;
+};
+
+function HomePageStatsCard({
+  dueTodayCount,
+  totalCards,
+  decks,
+}: HomePageStatsCardProps) {
+  const { t } = useTranslation();
+  return (
+    <Card className="min-w-sm border-border/60 bg-white/90 backdrop-blur">
+      <CardHeader className="flex flex-row items-start justify-between">
+        <div className="space-y-2">
+          <CardTitle className="space-x-2">
+            <span className="font-bold text-5xl text-foreground">
+              {dueTodayCount}
+            </span>
+            <span className="font-medium text-foreground/70 text-xl">
+              {t("index.stats.dueToday")}
+            </span>
+          </CardTitle>
+        </div>
+        <span className="flex size-11 items-center justify-center rounded-full bg-main/10 text-main">
+          <CalendarDays aria-hidden className="size-5">
+            <title>Due today icon</title>
+          </CalendarDays>
+        </span>
+      </CardHeader>
+      <CardContent className="space-y-2 pt-2">
+        <p className="text-foreground/70 text-sm">
+          {t("index.stats.todayWithReviews")}
+        </p>
+
+        <div className="flex gap-2">
+          <span className="inline-flex items-center rounded-full bg-main/10 px-3 py-1 font-medium text-main text-xs">
+            {t("index.stats.totalCards", { count: totalCards })}
+          </span>
+          {decks > 0 && (
+            <span className="inline-flex items-center rounded-full bg-foreground/10 px-3 py-1 font-medium text-foreground/80 text-xs">
+              {t("index.stats.decks", { count: decks })}
+            </span>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 function Index() {
   const { t } = useTranslation();
@@ -114,61 +165,34 @@ function Index() {
               handleReviewDeck={handleReviewDeck}
             />
           </div>
-
-          <div className="w-full max-w-sm rounded-2xl border border-border/60 bg-secondary-background/60 p-6 backdrop-blur">
-            <p className="font-semibold text-foreground/60 text-xs uppercase tracking-[0.3em]">
-              {t("index.stats.today")}
-            </p>
-            <p className="mt-3 font-heading text-5xl text-foreground">
-              {dueTodayCount}
-            </p>
-            <p className="mt-2 text-foreground/70 text-sm">
-              {dueTodayCount > 0
-                ? t("index.stats.todayWithReviews")
-                : t("index.stats.todayNoReviews")}
-            </p>
-            <div className="mt-5 flex gap-3">
-              <span className="inline-flex items-center rounded-full bg-main/10 px-3 py-1 font-medium text-main text-xs">
-                {t("index.stats.totalCards", { count: totalCards })}
-              </span>
-              <span className="inline-flex items-center rounded-full bg-foreground/10 px-3 py-1 font-medium text-foreground/80 text-xs">
-                {t("index.stats.decks", { count: decks })}
-              </span>
-            </div>
-          </div>
+          <HomePageStatsCard
+            decks={decks}
+            dueTodayCount={dueTodayCount}
+            totalCards={totalCards}
+          />
         </div>
       </section>
 
       <div className="flex flex-col gap-6 lg:flex-row">
-        <section className="space-y-6">
-          <div className="grid grid-cols-2 gap-5 md:grid-cols-3">
-            <StatsSection
-              decks={decks}
-              dueTodayCount={dueTodayCount}
-              totalCards={totalCards}
+        <Card className="min-w-full border-border/60 bg-white/90 backdrop-blur">
+          <CardHeader>
+            <CardTitle className="font-heading text-foreground text-xl">
+              {t("index.reviewQueue.title")}
+            </CardTitle>
+            <CardDescription>
+              {dueTodayCount > 0
+                ? t("index.reviewQueue.descriptionWithReviews")
+                : t("index.reviewQueue.descriptionNoReviews")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ReviewQueueList
+              cards={nextUp}
+              emptyMessage={t("index.reviewQueue.emptyState")}
+              userDecks={userDecks}
             />
-          </div>
-
-          <Card className="border-border/60 bg-white/90 backdrop-blur">
-            <CardHeader>
-              <CardTitle className="font-heading text-foreground text-xl">
-                {t("index.reviewQueue.title")}
-              </CardTitle>
-              <CardDescription>
-                {dueTodayCount > 0
-                  ? t("index.reviewQueue.descriptionWithReviews")
-                  : t("index.reviewQueue.descriptionNoReviews")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ReviewQueueList
-                cards={nextUp}
-                emptyMessage={t("index.reviewQueue.emptyState")}
-                userDecks={userDecks}
-              />
-            </CardContent>
-          </Card>
-        </section>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

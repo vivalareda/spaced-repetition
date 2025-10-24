@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Deck } from "@/components/dashboard/deck";
 import { StandaloneCard } from "@/components/dashboard/standalone-card";
+import { StatsSection } from "@/components/home/stats-section";
 import {
   Card,
   CardContent,
@@ -35,7 +36,8 @@ export const Route = createFileRoute("/dashboard")({
 
 function RouteComponent() {
   const { t } = useTranslation();
-  const { userCards, userDecksWithCardCount } = useUserData();
+  const { userCards, userDecksWithCardCount, cardsDueToday, userDecks } =
+    useUserData();
   const { confirmDeleteDeck, confirmDeleteCard } = useDeckDeletion();
 
   const [expandedDeck, setExpandedDeck] = useState<DeckType["_id"] | null>(
@@ -104,6 +106,13 @@ function RouteComponent() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <StatsSection
+          decks={userDecks.length}
+          dueTodayCount={cardsDueToday.length}
+          totalCards={userCards.length}
+        />
+      </div>
       <Card className="bg-white">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

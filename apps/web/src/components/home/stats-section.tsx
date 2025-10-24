@@ -1,12 +1,6 @@
 import { BookOpen, CalendarDays, ListTodo } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type StatsCardProps = {
   label: string;
@@ -15,14 +9,16 @@ type StatsCardProps = {
   icon: React.ReactNode;
 };
 
-function StatsCard({ label, value, description, icon }: StatsCardProps) {
+export function StatsCard({ label, value, description, icon }: StatsCardProps) {
   return (
     <Card className="border-border/60 bg-white/90 backdrop-blur">
       <CardHeader className="flex flex-row items-start justify-between">
         <div className="space-y-2">
-          <CardDescription>{label}</CardDescription>
-          <CardTitle className="font-heading text-4xl text-foreground">
-            {value}
+          <CardTitle className="space-x-2">
+            <span className="font-bold text-5xl text-foreground">{value}</span>
+            <span className="font-medium text-foreground/70 text-xl">
+              {label}
+            </span>
           </CardTitle>
         </div>
         <span className="flex size-11 items-center justify-center rounded-full bg-main/10 text-main">
