@@ -32,7 +32,7 @@ function FlashCardQuestion({ card }: { card: CardType }) {
     navigator.clipboard.writeText(formatedCodeBlock);
   };
 
-  if (isCodeCard(card) && card.answerCode) {
+  if (isCodeCard(card)) {
     return (
       <CodeFlashCardContent
         codeBlock={card.questionCode}

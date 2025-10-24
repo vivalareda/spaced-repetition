@@ -53,7 +53,7 @@ function ReviewPage() {
             const isCode = isCodeCard(data);
             const type = isCode ? "code" : "text";
             return (
-              <CarouselItem key={data.question}>
+              <CarouselItem key={`${data._id}-${index}`}>
                 <div className="p-[10px]">
                   <FlashCard
                     card={data}
