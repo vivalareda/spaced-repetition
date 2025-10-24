@@ -32,6 +32,10 @@ export function CopyCodeBlockTooltip({
     }, IS_COPIED_DELAY);
   };
 
+  if (!codeBlock) {
+    return;
+  }
+
   return (
     <TooltipProvider disableHoverableContent={true}>
       <Tooltip open={isCopied}>
