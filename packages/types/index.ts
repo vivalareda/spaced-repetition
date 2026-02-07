@@ -5,6 +5,7 @@ export type {
   CodeFormData,
   FormDataType,
   ImageFormData,
+  McqFormData,
   TextFormData,
 } from "./src/form-data";
 
@@ -46,4 +47,4 @@ export function validateImageFile(file: File): ImageValidationResult {
 // Constants
 // ============================================
 export const MINIMUM_DEBOUNCE_TIME = 300;
-export const QUESTION_TYPES = ["text", "code", "image"] as const;
+export const QUESTION_TYPES = ["text", "code", "image", "mcq"] as const;

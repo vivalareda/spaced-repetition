@@ -32,6 +32,24 @@ if (!process.env.CONVEX_URL) {
 
 const client = new ConvexHttpClient(process.env.CONVEX_URL);
 
+function getApiKeyFromExtra(extra: { requestInfo?: { headers: unknown } }) {
+  const headers = extra.requestInfo?.headers as
+    | { authorization?: string | string[] }
+    | undefined;
+
+  const authHeader = headers?.authorization;
+  if (!authHeader) {
+    throw new Error("Not authenticated");
+  }
+
+  const token = Array.isArray(authHeader) ? authHeader[0] : authHeader;
+  if (!token?.startsWith(AUTH_HEADER_PREFIX)) {
+    throw new Error("Invalid API key");
+  }
+
+  return token.substring(AUTH_HEADER_PREFIX.length);
+}
+
 const app = express();
 app.use(
   cors({
@@ -152,19 +170,7 @@ mcpServer.registerTool(
   },
 
   async ({ question, answer }, extra) => {
-    if (!extra.requestInfo?.headers.authorization) {
-      throw new Error("Not authenticated");
-    }
-
-    const apiKeyHeader = extra.requestInfo?.headers.authorization;
-
-    const token = Array.isArray(apiKeyHeader) ? apiKeyHeader[0] : apiKeyHeader;
-
-    if (!token) {
-      throw new Error("Invalid API key");
-    }
-
-    const apiKey = token.substring(AUTH_HEADER_PREFIX.length);
+    const apiKey = getApiKeyFromExtra(extra);
 
     const card = await client.mutation(api.cards.createQuestionCard, {
       question,
@@ -189,24 +195,111 @@ mcpServer.registerTool(
   }
 );
 
+const MIN_MCQ_OPTIONS = 2;
+
 mcpServer.registerTool(
-  "generate_random_number",
+  "create_mcq_flashcard",
   {
-    title: "Generate Random Number",
-    description: "Generate a random number between min and max",
+    title: "Create MCQ flashcard",
+    description:
+      "Create a multiple-choice flashcard for the user with options and a correct answer index",
     inputSchema: {
-      min: z.number().describe("Minimum value"),
-      max: z.number().describe("Maximum value"),
+      question: z.string(),
+      answer: z.string().describe("Explanation for the correct answer"),
+      options: z
+        .array(z.string())
+        .min(MIN_MCQ_OPTIONS)
+        .describe("The answer options"),
+      correctOptionIndex: z
+        .number()
+        .int()
+        .min(0)
+        .describe("Zero-based index of the correct option"),
     },
     outputSchema: {
-      randomNumber: z.number(),
+      id: z.string(),
+      message: z.string(),
     },
   },
-  ({ min, max }, extra) => {
-    console.log(extra.requestInfo?.headers.authorization);
+  async ({ question, answer, options, correctOptionIndex }, extra) => {
+    const apiKey = getApiKeyFromExtra(extra);
 
-    const randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
-    const output = { randomNumber: randomNum };
+    const card = await client.mutation(api.cards.createQuestionCard, {
+      question,
+      answer,
+      apiKey,
+      options,
+      correctOptionIndex,
+    });
+
+    const output = {
+      id: card,
+      message: `Successfully created MCQ flashcard with ID: ${card}`,
+    };
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(output),
+        },
+      ],
+      structuredContent: output,
+    };
+  }
+);
+
+mcpServer.registerTool(
+  "create_code_flashcard",
+  {
+    title: "Create Code Flashcard",
+    description:
+      "Create a coding flashcard with a code snippet and optional solution code",
+    inputSchema: {
+      question: z.string().min(1).describe("The prompt or question"),
+      questionCode: z
+        .string()
+        .min(1)
+        .describe("The code snippet shown with the question"),
+      answer: z.string().min(1).describe("Explanation for the answer"),
+      answerCode: z
+        .string()
+        .optional()
+        .describe("Optional solution code snippet"),
+      language: z
+        .string()
+        .min(1)
+        .describe("e.g. javascript, typescript, python"),
+      deck: z.string().optional().describe("Existing deck name"),
+      tags: z.array(z.string()).optional().describe("Tags for organization"),
+    },
+    outputSchema: {
+      id: z.string(),
+      message: z.string(),
+    },
+  },
+  async (
+    { question, questionCode, answer, answerCode, language, deck, tags },
+    extra
+  ) => {
+    const apiKey = getApiKeyFromExtra(extra);
+
+    const card = await client.mutation(api.cards.createCodeCard, {
+      question,
+      questionCode,
+      answer,
+      answerCode,
+      language,
+      deck,
+      tags,
+      apiKey,
+    });
+
+    const output = {
+      id: card,
+      message: `Successfully created code flashcard with ID: ${card}`,
+    };
+
     return {
       content: [
         {

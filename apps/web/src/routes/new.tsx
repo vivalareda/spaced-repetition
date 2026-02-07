@@ -26,11 +26,11 @@ function NewPage() {
   };
 
   const handleCreateDeck = () => {
-    onOpen("create-deck", true, routeToDashboard);
+    onOpen("create-deck", true, undefined, routeToDashboard);
   };
 
   const handleCreateQuestion = () => {
-    onOpen("create-card", true, routeToDashboard);
+    onOpen("create-card", true, undefined, routeToDashboard);
   };
 
   return (

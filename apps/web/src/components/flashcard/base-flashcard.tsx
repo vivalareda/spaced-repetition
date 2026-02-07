@@ -1,8 +1,10 @@
 import type { Difficulty } from "@shared/types";
 import {
   type Card as CardType,
+  type CardType as CardTypeEnum,
   isCodeCard,
   isImageCard,
+  isMcqCard,
 } from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,6 +12,7 @@ import { AnswerFlashCard } from "@/components/flashcard/answer-flashcard";
 import { CodeFlashCardContent } from "@/components/flashcard/code-flashcard-content";
 import { DifficultyButtons } from "@/components/flashcard/difficulty-buttons";
 import { ImageFlashCardContent } from "@/components/flashcard/image-flashcard-content";
+import { McqFlashCardContent } from "@/components/flashcard/mcq-flashcard-content";
 import {
   Card,
   CardContent,
@@ -18,7 +21,7 @@ import {
 } from "@/components/ui/card";
 
 type FlashCardProps = {
-  type: "text" | "code" | "image";
+  type: CardTypeEnum;
   card: CardType;
   totalQuestions: number;
   correctAnswer: string;
@@ -111,6 +114,8 @@ export function FlashCard(props: FlashCardProps) {
     onDifficultyClick(cardId, questionDifficulty);
   };
 
+  const isMcq = isMcqCard(card);
+
   return (
     <>
       <Card
@@ -131,17 +136,39 @@ export function FlashCard(props: FlashCardProps) {
         </CardHeader>
 
         <CardContent className="grid grid-cols-1 gap-[clamp(12px,2vw,20px)] pt-4 text-left sm:grid-cols-2">
-          <FlashCardQuestion card={card} />
-          <FlashCardAnswer card={card} showAnswer={showAnswer} />
+          {isMcq ? (
+            <McqFlashCardContent
+              correctOptionIndex={card.correctOptionIndex ?? 0}
+              onAnswerSelected={() => setShowAnswer(true)}
+              options={card.options ?? []}
+            />
+          ) : (
+            <>
+              <FlashCardQuestion card={card} />
+              <FlashCardAnswer card={card} showAnswer={showAnswer} />
+            </>
+          )}
         </CardContent>
 
-        <CardFooter className="flex justify-center pt-4">
-          <AnswerFlashCard
-            getCorrectAnswerText={() => getCorrectAnswerText(correctAnswer)}
-            setShowAnswer={setShowAnswer}
-            showAnswer={showAnswer}
-          />
-        </CardFooter>
+        {!isMcq && (
+          <CardFooter className="flex justify-center pt-4">
+            <AnswerFlashCard
+              getCorrectAnswerText={() => getCorrectAnswerText(correctAnswer)}
+              setShowAnswer={setShowAnswer}
+              showAnswer={showAnswer}
+            />
+          </CardFooter>
+        )}
+
+        {isMcq && showAnswer && correctAnswer && (
+          <CardFooter className="flex justify-center pt-4">
+            <div className="fade-in slide-in-from-bottom-10 w-full max-w-2xl animate-in rounded-lg border-2 border-primary/20 bg-white/50 p-6 text-center duration-500">
+              <p className="text-lg leading-relaxed">
+                {getCorrectAnswerText(correctAnswer)}
+              </p>
+            </div>
+          </CardFooter>
+        )}
       </Card>
 
       {showAnswer && (

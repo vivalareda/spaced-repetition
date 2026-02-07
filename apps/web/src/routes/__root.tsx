@@ -4,16 +4,15 @@ import {
   Outlet,
   useNavigate,
 } from "@tanstack/react-router";
-import { useMutation } from "convex/react";
+import { useConvexAuth, useMutation } from "convex/react";
 import { useEffect } from "react";
 import { ModalProvider } from "@/components/modals/modal-provider";
 import { Navbar } from "@/components/navbar";
-import { useUserData } from "@/hooks/use-user-data";
 import type { RootContext } from "@/router";
 
 const RootLayout = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading } = useUserData();
+  const { isAuthenticated, isLoading } = useConvexAuth();
   const upsertUser = useMutation(api.users.upsertFromClerk);
 
   useEffect(() => {

@@ -15,6 +15,11 @@ export type FormDataType = BaseFormData &
         answerCode?: string;
       }
     | { type: "image"; questionFile?: string; answerFile?: string }
+    | {
+        type: "mcq";
+        options: string[];
+        correctOptionIndex: number;
+      }
   );
 
 export type TextFormData = BaseFormData & {
@@ -34,7 +39,17 @@ export type ImageFormData = BaseFormData & {
   answerFile?: string;
 };
 
-export type FormData = TextFormData | CodeFormData | ImageFormData;
+export type McqFormData = BaseFormData & {
+  type: "mcq";
+  options: string[];
+  correctOptionIndex: number;
+};
+
+export type FormData =
+  | TextFormData
+  | CodeFormData
+  | ImageFormData
+  | McqFormData;
 
 export function isTextFormData(data: FormData): data is TextFormData {
   return data.type === "text";
@@ -46,4 +61,8 @@ export function isCodeFormData(data: FormData): data is CodeFormData {
 
 export function isImageFormData(data: FormData): data is ImageFormData {
   return data.type === "image";
+}
+
+export function isMcqFormData(data: FormData): data is McqFormData {
+  return data.type === "mcq";
 }

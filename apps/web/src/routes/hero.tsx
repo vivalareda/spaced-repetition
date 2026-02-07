@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import "i18next";
 import { useConvexAuth } from "convex/react";
@@ -25,8 +25,8 @@ function HeroPage() {
   }, [isAuthenticated, navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-main/5 to-secondary-background/20 pt-22">
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <div className="flex h-[calc(100vh-6rem)] flex-col items-center justify-center bg-gradient-to-br from-white via-main/5 to-secondary-background/20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 lg:pb-42">
         <section className="text-center">
           <div className="mx-auto max-w-4xl">
             <h1 className="font-heading text-4xl text-foreground tracking-tight sm:text-6xl lg:text-7xl">

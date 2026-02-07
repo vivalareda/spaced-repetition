@@ -67,9 +67,9 @@ export default {
     createCard: {
       title: "Créer une carte mémoire",
       description: "Entrez les détails de votre carte mémoire",
-      textQuestion: "Question texte",
-      codeQuestion: "Question code",
-      imageQuestion: "Question image",
+      textQuestion: "Texte",
+      codeQuestion: "Code",
+      imageQuestion: "Image",
       cancel: "Annuler",
       create: "Créer une carte mémoire",
       questionLabel: "Question",
@@ -86,6 +86,18 @@ export default {
       uploadFailed: "Le téléchargement a échoué",
       noDeckCreated: "Vous n'avez pas encore de paquet",
       selectDeck: "Sélectionner un paquet",
+      mcqQuestion: "QCM",
+      optionsLabel: "Options de réponse",
+      optionPlaceholder: "Option {{letter}}",
+      addOption: "Ajouter une option",
+      mcqHint:
+        "Cliquez sur le cercle à côté d'une option pour la marquer comme réponse correcte.",
+      answerExplanationLabel: "Explication (optionnel)",
+      answerExplanationPlaceholder:
+        "Expliquez pourquoi la bonne réponse est correcte...",
+      correctOptionSelected:
+        "L'option {{index}} est sélectionnée comme correcte",
+      markCorrectOption: "Marquer l'option {{index}} comme correcte",
     },
     confirmation: {
       title: "Êtes-vous sûr ?",
@@ -107,6 +119,10 @@ export default {
     },
     showAnswer: "Afficher la Réponse",
     questionProgress: "Question {{current}} sur {{total}}",
+    mcq: {
+      selectAnswer: "Sélectionnez votre réponse :",
+      option: "Option",
+    },
   },
   index: {
     loading: {
@@ -177,9 +193,9 @@ export default {
       button: "Créer un nouveau paquet",
     },
     createQuestion: {
-      title: "Créez votre première question",
-      description: "Créez une question autonome",
-      button: "Créer une question",
+      title: "Créez votre première carte mémoire",
+      description: "Créez une carte",
+      button: "Créer une carte",
     },
   },
   errors: {

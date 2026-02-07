@@ -1,14 +1,19 @@
 import type { FormDataType, QUESTION_TYPES } from "@shared/types";
 import { type ChangeEvent, useMemo, useReducer } from "react";
 
+const DEFAULT_MCQ_OPTIONS = ["", ""];
+const DEFAULT_CORRECT_OPTION_INDEX = 0;
+
 type FormAction =
-  | { type: "CHANGE_TYPE"; payload: "text" | "code" | "image" }
+  | { type: "CHANGE_TYPE"; payload: "text" | "code" | "image" | "mcq" }
   | { type: "UPDATE_FIELD"; payload: { field: string; value: string } }
   | { type: "SET_DECK"; payload: string }
   | {
       type: "SET_FILE";
       payload: { field: "questionFile" | "answerFile"; value: string };
     }
+  | { type: "SET_OPTIONS"; payload: string[] }
+  | { type: "SET_CORRECT_OPTION"; payload: number }
   | { type: "RESET" };
 
 const formReducer = (state: FormDataType, action: FormAction): FormDataType => {
@@ -44,6 +49,16 @@ const formReducer = (state: FormDataType, action: FormAction): FormDataType => {
             deck: state.deck,
             tags: state.tags,
           };
+        case "mcq":
+          return {
+            type: "mcq",
+            question: state.question,
+            answer: state.answer,
+            deck: state.deck,
+            tags: state.tags,
+            options: DEFAULT_MCQ_OPTIONS,
+            correctOptionIndex: DEFAULT_CORRECT_OPTION_INDEX,
+          };
         default:
           throw new Error(`Invalid type, ${action satisfies never}`);
       }
@@ -64,17 +79,27 @@ const formReducer = (state: FormDataType, action: FormAction): FormDataType => {
         answer: "",
         deck: "",
         tags: [],
-        ...(state.type === "code" && {
-          questionCode: "",
-          answerCode: "",
-          language: "",
-        }),
-        ...(state.type === "image" && { questionFile: "", answerFile: "" }),
       };
     case "SET_FILE":
       return {
         ...state,
         [action.payload.field]: action.payload.value,
+      };
+    case "SET_OPTIONS":
+      if (state.type !== "mcq") {
+        return state;
+      }
+      return {
+        ...state,
+        options: action.payload,
+      };
+    case "SET_CORRECT_OPTION":
+      if (state.type !== "mcq") {
+        return state;
+      }
+      return {
+        ...state,
+        correctOptionIndex: action.payload,
       };
     default:
       throw new Error(`Invalid action type, ${action satisfies never}`);
@@ -126,6 +151,10 @@ export function useCardForm() {
             value: storageId,
           },
         }),
+      optionsChange: (options: string[]) =>
+        dispatch({ type: "SET_OPTIONS", payload: options }),
+      correctOptionChange: (index: number) =>
+        dispatch({ type: "SET_CORRECT_OPTION", payload: index }),
     }),
     []
   );

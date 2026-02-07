@@ -95,13 +95,15 @@ function AuthenticatedNav({
 function UnauthenticatedNav() {
   const { onOpen } = useModalStore();
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const handleSignIn = () => {
     onOpen("sign-in", true);
   };
 
   const handleSignUp = () => {
-    onOpen("sign-up", true);
+    // onOpen("sign-up", true);
+    navigate({ to: "/sign-up" });
   };
 
   return (

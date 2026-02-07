@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-type QuestionType = "text" | "code" | "image";
+type QuestionType = "text" | "code" | "image" | "mcq";
 
 type ModalType =
   | "create-card"

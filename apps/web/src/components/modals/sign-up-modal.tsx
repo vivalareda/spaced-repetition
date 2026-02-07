@@ -21,7 +21,7 @@ export function SignUpModal() {
     <Dialog onOpenChange={onClose} open={isModalOpen}>
       <DialogContent className="max-w-[440px] border-0 p-0">
         <div className="flex justify-center p-6">
-          <SignUp fallbackRedirectUrl={"/"} routing="hash" />
+          <SignUp />
         </div>
       </DialogContent>
     </Dialog>

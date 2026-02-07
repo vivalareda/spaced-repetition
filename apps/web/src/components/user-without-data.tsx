@@ -22,11 +22,11 @@ export function UsersWithoutData() {
   };
 
   const handleCreateDeck = () => {
-    onOpen("create-deck", true, routeToDashboard);
+    onOpen("create-deck", true, undefined, routeToDashboard);
   };
 
   const handleCreateQuestion = () => {
-    onOpen("create-card", true, routeToDashboard);
+    onOpen("create-card", true, undefined, routeToDashboard);
   };
   return (
     <div className="flex min-h-full w-full flex-col items-center justify-center gap-4 bg-white70 px-4 py-10 sm:px-8 lg:px-12">

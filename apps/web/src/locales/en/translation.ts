@@ -63,9 +63,9 @@ export default {
     createCard: {
       title: "Create a flashcard",
       description: "Enter the details of your flashcard",
-      textQuestion: "Text Question",
-      codeQuestion: "Code Question",
-      imageQuestion: "Image Question",
+      textQuestion: "Text",
+      codeQuestion: "Code",
+      imageQuestion: "Image",
       cancel: "Cancel",
       create: "Create Flashcard",
       questionLabel: "Question",
@@ -82,6 +82,17 @@ export default {
       uploadFailed: "Upload failed",
       noDeckCreated: "You don't have any decks",
       selectDeck: "Select a deck",
+      mcqQuestion: "MCQ",
+      optionsLabel: "Answer Options",
+      optionPlaceholder: "Option {{letter}}",
+      addOption: "Add Option",
+      mcqHint:
+        "Click the circle next to an option to mark it as the correct answer.",
+      answerExplanationLabel: "Explanation (optional)",
+      answerExplanationPlaceholder:
+        "Explain why the correct answer is right...",
+      correctOptionSelected: "Option {{index}} is selected as correct",
+      markCorrectOption: "Mark option {{index}} as correct",
     },
     confirmation: {
       title: "Are you sure?",
@@ -103,6 +114,10 @@ export default {
     },
     showAnswer: "Show Answer",
     questionProgress: "Question {{current}} of {{total}}",
+    mcq: {
+      selectAnswer: "Select your answer:",
+      option: "Option",
+    },
   },
   index: {
     loading: {
@@ -170,9 +185,9 @@ export default {
       button: "Create a new deck",
     },
     createQuestion: {
-      title: "Create your first question",
-      description: "Create a stand alone question",
-      button: "Create a question",
+      title: "Create your first flashcard",
+      description: "Create a stand alone flashcard",
+      button: "Create a flashcard",
     },
   },
   errors: {

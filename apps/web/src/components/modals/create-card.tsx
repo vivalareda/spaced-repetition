@@ -1,5 +1,5 @@
 import { MINIMUM_DEBOUNCE_TIME, QUESTION_TYPES } from "@shared/types";
-import { isImageFormData } from "@shared/types/form-data";
+import { isImageFormData, isMcqFormData } from "@shared/types/form-data";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
 import type { Id } from "@spaced-repetition-monorepo/backend/convex/_generated/dataModel";
 import { useNavigate } from "@tanstack/react-router";
@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CodeQuestionForm } from "@/components/modals/question-forms/code-question-form";
 import { ImageQuestionForm } from "@/components/modals/question-forms/image-question-form";
+import { McqQuestionForm } from "@/components/modals/question-forms/mcq-question-form";
 import { TextQuestionForm } from "@/components/modals/question-forms/text-question-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,17 +58,45 @@ export function CreateCardModal() {
   const currentQuestionType = formData.type;
 
   const handleSubmit = () => {
-    const { type: _, ...dataWithoutType } = formData;
+    const base = {
+      question: formData.question,
+      answer: formData.answer,
+      deck: formData.deck,
+      tags: formData.tags,
+    };
 
-    const sanitizedData = isImageFormData(formData)
-      ? {
-          ...dataWithoutType,
-          questionFile: (formData.questionFile || undefined) as Id<"_storage">,
-          answerFile: (formData.answerFile || undefined) as Id<"_storage">,
-        }
-      : dataWithoutType;
-
-    createCard(sanitizedData);
+    if (isImageFormData(formData)) {
+      createCard({
+        ...base,
+        cardType: "image",
+        questionFile: (formData.questionFile || undefined) as Id<"_storage">,
+        answerFile: (formData.answerFile || undefined) as Id<"_storage">,
+      });
+    } else if (isMcqFormData(formData)) {
+      createCard({
+        ...base,
+        cardType: "mcq",
+        options: formData.options,
+        correctOptionIndex: formData.correctOptionIndex,
+        answer:
+          formData.answer ||
+          formData.options.at(formData.correctOptionIndex) ||
+          "",
+      });
+    } else if (formData.type === "code") {
+      createCard({
+        ...base,
+        cardType: "code",
+        language: formData.language,
+        questionCode: formData.questionCode,
+        answerCode: formData.answerCode,
+      });
+    } else {
+      createCard({
+        ...base,
+        cardType: "text",
+      });
+    }
 
     if (onSubmit) {
       onSubmit();
@@ -114,6 +143,17 @@ export function CreateCardModal() {
             userDecks={userDecks}
           />
         );
+      case "mcq":
+        return (
+          <McqQuestionForm
+            formData={formData}
+            onCorrectOptionChange={handlers.correctOptionChange}
+            onDeckSelect={handlers.deckSelect}
+            onFieldChange={handlers.fieldChange}
+            onOptionsChange={handlers.optionsChange}
+            userDecks={userDecks}
+          />
+        );
       default:
         throw new Error(`Invalid type, ${formData satisfies never}`);
     }
@@ -149,7 +189,7 @@ export function CreateCardModal() {
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
-          <div className="flex gap-2">{renderQuestionButtons()}</div>
+          <div className="flex flex-wrap gap-2">{renderQuestionButtons()}</div>
           {renderQuestionForm()}
         </div>
 

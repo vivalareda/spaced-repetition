@@ -1,7 +1,7 @@
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
 import {
   type Card,
-  isCodeCard,
+  resolveCardType,
 } from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "convex/react";
@@ -50,8 +50,7 @@ function ReviewPage() {
       <Carousel className="w-full max-w-4xl" setApi={setCarouselApi}>
         <CarouselContent>
           {reviewQueue.map((data, index) => {
-            const isCode = isCodeCard(data);
-            const type = isCode ? "code" : "text";
+            const type = resolveCardType(data);
             return (
               <CarouselItem key={`${data._id}-${index}`}>
                 <div className="p-[10px]">

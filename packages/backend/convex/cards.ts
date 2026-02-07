@@ -45,6 +45,15 @@ export const get = query({
 
 export const createCard = mutation({
   args: {
+    cardType: v.optional(
+      v.union(
+        v.literal("text"),
+        v.literal("code"),
+        v.literal("image"),
+        v.literal("mcq")
+      )
+    ),
+
     question: v.string(),
     questionCode: v.optional(v.string()),
     questionFile: v.optional(v.id("_storage")),
@@ -52,6 +61,9 @@ export const createCard = mutation({
     answer: v.string(),
     answerCode: v.optional(v.string()),
     answerFile: v.optional(v.id("_storage")),
+
+    options: v.optional(v.array(v.string())),
+    correctOptionIndex: v.optional(v.number()),
 
     language: v.optional(v.string()),
     deck: v.optional(v.string()),
@@ -70,9 +82,25 @@ export const createCard = mutation({
       deckId = deck?._id;
     }
 
+    if (args.cardType === "mcq") {
+      if (!args.options || args.options.length < 2) {
+        throw new Error("MCQ cards require at least 2 options");
+      }
+      if (
+        args.correctOptionIndex === undefined ||
+        args.correctOptionIndex < 0 ||
+        args.correctOptionIndex >= args.options.length
+      ) {
+        throw new Error(
+          "correctOptionIndex must be a valid index within the options array"
+        );
+      }
+    }
+
     const newCard = await ctx.db.insert("cards", {
       userId,
       deckId,
+      cardType: args.cardType,
 
       question: args.question,
       questionCode: args.questionCode,
@@ -81,6 +109,9 @@ export const createCard = mutation({
       answer: args.answer,
       answerCode: args.answerCode,
       answerFile: args.answerFile,
+
+      options: args.options,
+      correctOptionIndex: args.correctOptionIndex,
 
       language: args.language,
       tags: args.tags,
@@ -101,14 +132,76 @@ export const createQuestionCard = mutation({
     answer: v.string(),
     deck: v.optional(v.string()),
     tags: v.optional(v.array(v.string())),
+    options: v.optional(v.array(v.string())),
+    correctOptionIndex: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const userId = await getUserByApiKey(ctx, args.apiKey);
 
+    const isMcq =
+      args.options !== undefined && args.correctOptionIndex !== undefined;
+
     const newCard = await ctx.db.insert("cards", {
       userId,
+      cardType: isMcq ? "mcq" : "text",
       question: args.question,
       answer: args.answer,
+      options: args.options,
+      correctOptionIndex: args.correctOptionIndex,
+      nextReviewDate: Date.now(),
+      easeFactor: INITIAL_EASE_FACTOR,
+      intervalDays: 0,
+      repetitions: 0,
+    });
+
+    return newCard;
+  },
+});
+
+export const createCodeCard = mutation({
+  args: {
+    apiKey: v.string(),
+    question: v.string(),
+    answer: v.string(),
+    language: v.string(),
+    questionCode: v.string(),
+    answerCode: v.optional(v.string()),
+    deck: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getUserByApiKey(ctx, args.apiKey);
+
+    if (args.language.trim().length === 0) {
+      throw new Error("language is required for code cards");
+    }
+    if (args.questionCode.trim().length === 0) {
+      throw new Error("questionCode is required for code cards");
+    }
+
+    let deckId: Id<"decks"> | undefined;
+    if (args.deck) {
+      const deck = await ctx.db
+        .query("decks")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .filter((q) => q.eq(q.field("deckName"), args.deck))
+        .unique();
+
+      // Deck is optional: if the provided name doesn't match an existing deck,
+      // we create the card without a deck assignment.
+      deckId = deck?._id;
+    }
+
+    const newCard = await ctx.db.insert("cards", {
+      userId,
+      deckId,
+      cardType: "code",
+      question: args.question,
+      questionCode: args.questionCode,
+      answer: args.answer,
+      answerCode: args.answerCode,
+      language: args.language,
+      tags: args.tags,
       nextReviewDate: Date.now(),
       easeFactor: INITIAL_EASE_FACTOR,
       intervalDays: 0,
