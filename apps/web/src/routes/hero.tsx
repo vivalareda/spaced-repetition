@@ -1,28 +1,23 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import "i18next";
-import { useConvexAuth } from "convex/react";
 import { ArrowRight } from "lucide-react";
-import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useModalStore } from "@/hooks/use-modal-store";
 
 export const Route = createFileRoute("/hero")({
   component: HeroPage,
+  beforeLoad: ({ context }) => {
+    if (context.isAuthenticated) {
+      throw redirect({ to: "/" });
+    }
+  },
 });
 
 function HeroPage() {
   const { onOpen } = useModalStore();
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { isAuthenticated } = useConvexAuth();
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate({ to: "/" });
-    }
-  }, [isAuthenticated, navigate]);
 
   return (
     <div className="flex h-[calc(100vh-6rem)] flex-col items-center justify-center bg-gradient-to-br from-white via-main/5 to-secondary-background/20">

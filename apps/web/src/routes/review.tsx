@@ -52,7 +52,7 @@ function ReviewPage() {
           {reviewQueue.map((data, index) => {
             const type = resolveCardType(data);
             return (
-              <CarouselItem key={`${data._id}-${index}`}>
+              <CarouselItem key={data._id}>
                 <div className="p-[10px]">
                   <FlashCard
                     card={data}

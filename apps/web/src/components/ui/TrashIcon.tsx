@@ -2,10 +2,10 @@
 
 import { cn } from "@/lib/utils";
 import type { HTMLMotionProps, Variants } from "motion/react";
-import { motion, useAnimation, useReducedMotion } from "motion/react";
+import { LazyMotion, domAnimation, m, useAnimation, useReducedMotion } from "motion/react";
 import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 
-export interface DashboardIconHandle {
+interface DashboardIconHandle {
 	startAnimation: () => void;
 	stopAnimation: () => void;
 }
@@ -86,46 +86,48 @@ const TrashIcon = forwardRef<DashboardIconHandle, DashboardIconProps>(
 		};
 
 		return (
-			<motion.div
-				className={cn("inline-flex items-center justify-center", className)}
-				onMouseEnter={handleEnter}
-				onMouseLeave={handleLeave}
-				{...props}
-			>
-				<motion.svg
-					xmlns="http://www.w3.org/2000/svg"
-					width={size}
-					height={size}
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth="2"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					animate={controls}
-					initial="normal"
-					variants={iconVariants}
+			<LazyMotion features={domAnimation}>
+				<m.div
+					className={cn("inline-flex items-center justify-center", className)}
+					onMouseEnter={handleEnter}
+					onMouseLeave={handleLeave}
+					{...props}
 				>
-					<motion.path
-						d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
-						variants={binSettle}
-						initial="normal"
+					<m.svg
+						xmlns="http://www.w3.org/2000/svg"
+						width={size}
+						height={size}
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth="2"
+						strokeLinecap="round"
+						strokeLinejoin="round"
 						animate={controls}
-					/>
-					<motion.path
-						d="M3 6h18"
-						variants={barSnap}
 						initial="normal"
-						animate={controls}
-					/>
-					<motion.path
-						d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-						variants={lidBounce}
-						initial="normal"
-						animate={controls}
-					/>
-				</motion.svg>
-			</motion.div>
+						variants={iconVariants}
+					>
+						<m.path
+							d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+							variants={binSettle}
+							initial="normal"
+							animate={controls}
+						/>
+						<m.path
+							d="M3 6h18"
+							variants={barSnap}
+							initial="normal"
+							animate={controls}
+						/>
+						<m.path
+							d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+							variants={lidBounce}
+							initial="normal"
+							animate={controls}
+						/>
+					</m.svg>
+				</m.div>
+			</LazyMotion>
 		);
 	},
 );

@@ -4,7 +4,7 @@ import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
 import type { Id } from "@spaced-repetition-monorepo/backend/convex/_generated/dataModel";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CodeQuestionForm } from "@/components/modals/question-forms/code-question-form";
 import { ImageQuestionForm } from "@/components/modals/question-forms/image-question-form";
@@ -27,10 +27,13 @@ export function CreateCardModal() {
   const { onSubmit, isOpen, onClose, type, questionType } = useModalStore();
   const navigate = useNavigate();
   const [shouldFetchDecks, setShouldFetchDecks] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { formData, dispatch, handlers } = useCardForm();
 
   const isModalOpen = isOpen && type === "create-card";
   const createCard = useMutation(api.cards.createCard);
+  const currentUser = useQuery(api.users.current, isModalOpen ? {} : "skip");
 
   const shouldQuery = isModalOpen && shouldFetchDecks;
   const userDecks = useQuery(
@@ -49,15 +52,20 @@ export function CreateCardModal() {
     setShouldFetchDecks(false);
   }, [isModalOpen]);
 
-  useEffect(() => {
-    if (isModalOpen && questionType) {
-      handlers.questionTypeChange(questionType);
-    }
-  }, [isModalOpen, questionType, handlers]);
+  const appliedQuestionTypeRef = useRef(false);
+  if (isModalOpen && questionType && !appliedQuestionTypeRef.current) {
+    appliedQuestionTypeRef.current = true;
+    handlers.questionTypeChange(questionType);
+  }
+  if (!isModalOpen) {
+    appliedQuestionTypeRef.current = false;
+  }
 
   const currentQuestionType = formData.type;
+  const canSubmit =
+    !isSubmitting && currentUser !== null && currentUser !== undefined;
 
-  const handleSubmit = () => {
+  const getCreateCardArgs = () => {
     const base = {
       question: formData.question,
       answer: formData.answer,
@@ -66,51 +74,77 @@ export function CreateCardModal() {
     };
 
     if (isImageFormData(formData)) {
-      createCard({
+      return {
         ...base,
-        cardType: "image",
+        cardType: "image" as const,
         questionFile: (formData.questionFile || undefined) as Id<"_storage">,
         answerFile: (formData.answerFile || undefined) as Id<"_storage">,
-      });
-    } else if (isMcqFormData(formData)) {
-      createCard({
+      };
+    }
+
+    if (isMcqFormData(formData)) {
+      return {
         ...base,
-        cardType: "mcq",
+        cardType: "mcq" as const,
         options: formData.options,
         correctOptionIndex: formData.correctOptionIndex,
         answer:
           formData.answer ||
           formData.options.at(formData.correctOptionIndex) ||
           "",
-      });
-    } else if (formData.type === "code") {
-      createCard({
+      };
+    }
+
+    if (formData.type === "code") {
+      return {
         ...base,
-        cardType: "code",
+        cardType: "code" as const,
         language: formData.language,
         questionCode: formData.questionCode,
         answerCode: formData.answerCode,
-      });
-    } else {
-      createCard({
-        ...base,
-        cardType: "text",
-      });
+      };
     }
 
-    if (onSubmit) {
-      onSubmit();
+    return {
+      ...base,
+      cardType: "text" as const,
+    };
+  };
+
+  const handleSubmit = async () => {
+    if (!canSubmit) {
+      setSubmitError("Please wait for your account to finish syncing.");
+      return;
     }
-    navigate({ to: "/" });
-    closeModal();
+
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    try {
+      await createCard(getCreateCardArgs());
+
+      if (onSubmit) {
+        await onSubmit();
+      }
+      navigate({ to: "/" });
+      closeModal();
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Failed to create card"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const closeModal = () => {
+    setSubmitError(null);
+    setIsSubmitting(false);
     onClose();
     dispatch({ type: "RESET" });
   };
 
-  const renderQuestionForm = () => {
+  const questionForm = (() => {
     switch (formData.type) {
       case "code":
         return (
@@ -157,20 +191,7 @@ export function CreateCardModal() {
       default:
         throw new Error(`Invalid type, ${formData satisfies never}`);
     }
-  };
-
-  const renderQuestionButtons = () =>
-    QUESTION_TYPES.map((qt) => (
-      <Button
-        key={qt}
-        onClick={() => handlers.questionTypeChange(qt)}
-        size="sm"
-        type="button"
-        variant={currentQuestionType === qt ? "noShadow" : "neutral"}
-      >
-        {t(`modals.createCard.${qt}Question`)}
-      </Button>
-    ));
+  })();
 
   return (
     <Dialog onOpenChange={closeModal} open={isModalOpen}>
@@ -189,15 +210,34 @@ export function CreateCardModal() {
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
-          <div className="flex flex-wrap gap-2">{renderQuestionButtons()}</div>
-          {renderQuestionForm()}
+          <div className="flex flex-wrap gap-2">
+            {QUESTION_TYPES.map((qt) => (
+              <Button
+                key={qt}
+                onClick={() => handlers.questionTypeChange(qt)}
+                size="sm"
+                type="button"
+                variant={currentQuestionType === qt ? "noShadow" : "neutral"}
+              >
+                {t(`modals.createCard.${qt}Question`)}
+              </Button>
+            ))}
+          </div>
+          {questionForm}
+          {submitError ? (
+            <div className="text-red-600 text-sm">{submitError}</div>
+          ) : null}
         </div>
 
         <DialogFooter>
-          <Button onClick={closeModal} variant="neutral">
+          <Button
+            disabled={isSubmitting}
+            onClick={closeModal}
+            variant="neutral"
+          >
             {t("modals.createCard.cancel")}
           </Button>
-          <Button onClick={handleSubmit}>
+          <Button disabled={!canSubmit} onClick={handleSubmit}>
             {t("modals.createCard.create")}
           </Button>
         </DialogFooter>

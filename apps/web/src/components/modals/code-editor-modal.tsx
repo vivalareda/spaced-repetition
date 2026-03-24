@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Combobox } from "@/components/combobox";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,85 +47,100 @@ export function CodeEditorModal({
   answerCode,
   language,
 }: CodeEditorModalProps) {
-  const [currentLanguage, setLanguage] = useState("");
-  const [code, setCode] = useState("");
+  return (
+    <Dialog onOpenChange={onClose} open={isOpen !== null}>
+      {isOpen && (
+        <CodeEditorModalContent
+          answerCode={answerCode}
+          codeBlockFor={isOpen.codeBlockFor}
+          language={language}
+          onClose={onClose}
+          onSave={onSave}
+          questionCode={questionCode}
+        />
+      )}
+    </Dialog>
+  );
+}
 
-  useEffect(() => {
-    if (isOpen) {
-      const initialCode =
-        isOpen.codeBlockFor === "question" ? questionCode : answerCode;
-      setCode(initialCode);
-      setLanguage(language);
-    }
-  }, [isOpen, language, questionCode, answerCode]);
+function CodeEditorModalContent({
+  codeBlockFor,
+  onClose,
+  onSave,
+  questionCode,
+  answerCode,
+  language,
+}: {
+  codeBlockFor: "question" | "answer";
+  language: string;
+  questionCode: string;
+  answerCode: string;
+  onClose: () => void;
+  onSave: (
+    language: string,
+    code: string,
+    codeBlockFor: "question" | "answer"
+  ) => void;
+}) {
+  const initialCode = codeBlockFor === "question" ? questionCode : answerCode;
+  const [currentLanguage, setLanguage] = useState(language);
+  const [code, setCode] = useState(initialCode);
 
   const handleSave = () => {
-    if (!isOpen) {
-      return;
-    }
-    onSave(currentLanguage, code, isOpen.codeBlockFor);
-    handleClose();
+    onSave(currentLanguage, code, codeBlockFor);
     onClose();
   };
 
   const handleCancel = () => {
-    handleClose();
     onClose();
   };
 
-  const handleClose = () => {
-    setLanguage("");
-    setCode("");
-  };
-
   return (
-    <Dialog onOpenChange={onClose} open={isOpen !== null}>
-      <DialogContent className="max-h-[70vh] min-w-4xl">
-        <DialogHeader>
-          <DialogTitle>Code Editor</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="language">Language</Label>
-            <Combobox
-              currentLanguage={language}
-              items={languages}
-              onSelect={setLanguage}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label>Code</Label>
-            <div className="overflow-hidden rounded-md border">
-              <Suspense fallback={<div>Loading...</div>}>
-                <Editor
-                  height="300px"
-                  language={currentLanguage.toLowerCase() || "plaintext"}
-                  onChange={(value) => setCode(value || "")}
-                  options={{
-                    minimap: { enabled: false },
-                    scrollBeyondLastLine: false,
-                    fontSize: 14,
-                    lineNumbers: "on",
-                    wordWrap: "on",
-                    folding: true,
-                    lineDecorationsWidth: 10,
-                    lineNumbersMinChars: 3,
-                    automaticLayout: true,
-                  }}
-                  theme="vs-light"
-                  value={code}
-                />
-              </Suspense>
-            </div>
+    <DialogContent className="max-h-[70vh] min-w-4xl">
+      <DialogHeader>
+        <DialogTitle>Code Editor</DialogTitle>
+      </DialogHeader>
+      <div className="grid gap-4">
+        <div className="grid gap-2">
+          <Label htmlFor="language">Language</Label>
+          <Combobox
+            currentLanguage={language}
+            items={languages}
+            onSelect={setLanguage}
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label>Code</Label>
+          <div className="overflow-hidden rounded-md border">
+            <Suspense fallback={<div>Loading...</div>}>
+              <Editor
+                height="300px"
+                language={currentLanguage.toLowerCase() || "plaintext"}
+                onChange={(value) => setCode(value || "")}
+                options={{
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  fontSize: 14,
+                  lineNumbers: "on",
+                  wordWrap: "on",
+                  folding: true,
+                  lineDecorationsWidth: 10,
+                  lineNumbersMinChars: 3,
+                  automaticLayout: true,
+                }}
+                theme="vs-light"
+                value={code}
+              />
+            </Suspense>
           </div>
         </div>
-        <DialogFooter>
-          <Button onClick={handleCancel} variant="neutral">
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>Save</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </div>
+      <DialogFooter>
+        <Button onClick={handleCancel} variant="neutral">
+          Cancel
+        </Button>
+        <Button onClick={handleSave}>Save</Button>
+      </DialogFooter>
+    </DialogContent>
   );
 }

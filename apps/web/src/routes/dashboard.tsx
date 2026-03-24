@@ -1,6 +1,9 @@
 import { convexQuery } from "@convex-dev/react-query";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
-import type { Deck as DeckType } from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
+import type {
+  Card as CardData,
+  Deck as DeckType,
+} from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { BookOpen, CircleQuestionMark } from "lucide-react";
 import { useState } from "react";
@@ -73,36 +76,9 @@ function RouteComponent() {
     setExpandedDeck(expandedDeck === deckId ? null : deckId);
   };
 
-  const renderCardsWithoutDeck = () => {
-    const cardsWithoutDeck = userCards.filter(
-      (card) => card.deckId === undefined
-    );
-    if (cardsWithoutDeck.length === 0) {
-      return null;
-    }
-    return (
-      <div className="mt-8">
-        <div className="mb-4 flex items-center gap-2">
-          <CircleQuestionMark className="h-5 w-5 text-gray-600" />
-          <h3 className="font-semibold text-gray-900">
-            {t("dashboard.cardsWithoutDeck")}
-          </h3>
-          <span className="text-gray-500 text-sm">
-            {t("dashboard.cardsCount", { count: cardsWithoutDeck.length })}
-          </span>
-        </div>
-        <div className="flex flex-col gap-3">
-          {cardsWithoutDeck.map((card) => (
-            <StandaloneCard
-              card={card}
-              key={card._id}
-              onDeleteCard={confirmDeleteCard}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  };
+  const cardsWithoutDeck = userCards.filter(
+    (card) => card.deckId === undefined
+  );
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
@@ -143,9 +119,47 @@ function RouteComponent() {
               ))}
             </div>
           )}
-          {renderCardsWithoutDeck()}
+          {cardsWithoutDeck.length > 0 && (
+            <CardsWithoutDeck
+              cards={cardsWithoutDeck}
+              onDeleteCard={confirmDeleteCard}
+            />
+          )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function CardsWithoutDeck({
+  cards,
+  onDeleteCard,
+}: {
+  cards: CardData[];
+  onDeleteCard: (cardId: CardData["_id"]) => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="mt-8">
+      <div className="mb-4 flex items-center gap-2">
+        <CircleQuestionMark className="h-5 w-5 text-gray-600" />
+        <h3 className="font-semibold text-gray-900">
+          {t("dashboard.cardsWithoutDeck")}
+        </h3>
+        <span className="text-gray-500 text-sm">
+          {t("dashboard.cardsCount", { count: cards.length })}
+        </span>
+      </div>
+      <div className="flex flex-col gap-3">
+        {cards.map((card) => (
+          <StandaloneCard
+            card={card}
+            key={card._id}
+            onDeleteCard={onDeleteCard}
+          />
+        ))}
+      </div>
     </div>
   );
 }

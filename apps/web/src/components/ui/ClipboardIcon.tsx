@@ -2,10 +2,10 @@
 
 import { cn } from "@/lib/utils";
 import type { HTMLMotionProps, Variants } from "motion/react";
-import { motion, useAnimation, useReducedMotion } from "motion/react";
+import { LazyMotion, domAnimation, m, useAnimation, useReducedMotion } from "motion/react";
 import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 
-export interface ClipboardIconHandle {
+interface ClipboardIconHandle {
 	startAnimation: () => void;
 	stopAnimation: () => void;
 }
@@ -85,44 +85,46 @@ const ClipboardIcon = forwardRef<ClipboardIconHandle, ClipboardIconProps>(
 		};
 
 		return (
-			<motion.div
-				className={cn("inline-flex items-center justify-center", className)}
-				onMouseEnter={handleEnter}
-				onMouseLeave={handleLeave}
-				{...props}
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width={size}
-					height={size}
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth="2"
-					strokeLinecap="round"
-					strokeLinejoin="round"
+			<LazyMotion features={domAnimation}>
+				<m.div
+					className={cn("inline-flex items-center justify-center", className)}
+					onMouseEnter={handleEnter}
+					onMouseLeave={handleLeave}
+					{...props}
 				>
-					<motion.rect
-						x="8"
-						y="2"
-						width="8"
-						height="4"
-						rx="1"
-						ry="1"
-						initial="normal"
-						animate={clipControls}
-						variants={clipVariants}
-						style={{ strokeDasharray: 60, strokeLinecap: "round" }}
-					/>
-					<motion.path
-						d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
-						initial="normal"
-						animate={bodyControls}
-						variants={bodyVariants}
-						style={{ strokeDasharray: 240, strokeLinecap: "round" }}
-					/>
-				</svg>
-			</motion.div>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width={size}
+						height={size}
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth="2"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					>
+						<m.rect
+							x="8"
+							y="2"
+							width="8"
+							height="4"
+							rx="1"
+							ry="1"
+							initial="normal"
+							animate={clipControls}
+							variants={clipVariants}
+							style={{ strokeDasharray: 60, strokeLinecap: "round" }}
+						/>
+						<m.path
+							d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+							initial="normal"
+							animate={bodyControls}
+							variants={bodyVariants}
+							style={{ strokeDasharray: 240, strokeLinecap: "round" }}
+						/>
+					</svg>
+				</m.div>
+			</LazyMotion>
 		);
 	},
 );

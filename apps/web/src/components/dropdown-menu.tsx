@@ -7,8 +7,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const EMPTY_ITEMS: string[] = [];
+
 export function DropdownMenu<T extends string>({
-  items = [],
+  items = EMPTY_ITEMS as T[],
   onSelect,
   placeholder,
 }: {

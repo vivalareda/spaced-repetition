@@ -1,5 +1,5 @@
 import { CheckIcon, ChevronsUpDown } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -31,18 +31,21 @@ type ComboboxProps = {
 
 export function Combobox({ items, onSelect, currentLanguage }: ComboboxProps) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(currentLanguage);
+  const listboxId = useId();
 
-  useEffect(() => {
-    if (currentLanguage) {
-      setValue(currentLanguage);
-    }
-  }, [currentLanguage]);
+  const handleSelect = (currentValue: string) => {
+    const newValue = currentValue === value ? "" : currentValue;
+    setValue(newValue);
+    setOpen(false);
+    onSelect(currentValue);
+  };
 
   return (
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button
+          aria-controls={listboxId}
           aria-expanded={open}
           className="w-full justify-between md:max-w-[200px]"
           role="combobox"
@@ -57,18 +60,14 @@ export function Combobox({ items, onSelect, currentLanguage }: ComboboxProps) {
       <PopoverContent className="w-(--radix-popover-trigger-width) border-0 p-0">
         <Command className="**:data-[slot=command-input-wrapper]:h-11">
           <CommandInput placeholder="Search framework..." />
-          <CommandList className="p-1">
+          <CommandList className="p-1" id={listboxId}>
             <CommandEmpty>No language found.</CommandEmpty>
             <CommandGroup>
               {items.map((item) => (
                 <CommandItem
                   defaultValue={"typescript"}
                   key={item.value}
-                  onSelect={(currentValue) => {
-                    setValue(currentValue === value ? "" : currentValue);
-                    setOpen(false);
-                    onSelect(currentValue);
-                  }}
+                  onSelect={handleSelect}
                   value={item.value}
                 >
                   {item.label}
