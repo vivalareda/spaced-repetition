@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 
 type AnswerFlashCardProps = {
   showAnswer: boolean;
-  setShowAnswer: React.Dispatch<React.SetStateAction<boolean>>;
+  onReveal: () => void;
   getCorrectAnswerText: () => (string | JSX.Element)[];
 };
 
 export function AnswerFlashCard({
   showAnswer,
-  setShowAnswer,
+  onReveal,
   getCorrectAnswerText,
 }: AnswerFlashCardProps) {
   const { t } = useTranslation();
@@ -22,7 +22,7 @@ export function AnswerFlashCard({
           <p className="text-lg leading-relaxed">{getCorrectAnswerText()}</p>
         </div>
       ) : (
-        <Button className="w-full max-w-md" onClick={() => setShowAnswer(true)}>
+        <Button className="w-full max-w-md" onClick={onReveal}>
           {t("flashcards.showAnswer")}
         </Button>
       )}

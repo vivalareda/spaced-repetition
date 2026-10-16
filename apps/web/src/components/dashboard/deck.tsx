@@ -2,21 +2,13 @@ import type {
   Card as CardType,
   Deck as DeckType,
 } from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
-import { useNavigate } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { Card } from "@/components/dashboard/card";
 import { Button } from "@/components/ui/button";
-import { useSessionStore } from "@/hooks/use-session-store";
-
-type DeckWithCards = {
-  _id: DeckType["_id"];
-  deckName: string;
-  deckDescription?: string;
-  cardCount: number;
-};
+import { useStartReview } from "@/hooks/use-review-session";
 
 type DeckProps = {
-  deck: DeckWithCards;
+  deck: DeckType;
   isExpanded: boolean;
   cards: CardType[];
   onToggleExpansion: (deckId: DeckType["_id"]) => void;
@@ -32,13 +24,7 @@ export function Deck({
   onDeleteDeck,
   onDeleteCard,
 }: DeckProps) {
-  const { startSession } = useSessionStore();
-  const navigate = useNavigate();
-
-  const handleStartReviewSession = () => {
-    startSession(cards);
-    navigate({ to: "/review" });
-  };
+  const startReview = useStartReview();
 
   return (
     <div className="rounded-lg border" key={deck._id}>
@@ -52,14 +38,14 @@ export function Deck({
             >
               <h3 className="font-semibold">{deck.deckName}</h3>
               <p className="text-muted-foreground text-sm">
-                {deck.cardCount} cards
+                {cards.length} cards
                 {deck.deckDescription && ` • ${deck.deckDescription}`}
               </p>
             </button>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={handleStartReviewSession} size="sm">
+          <Button onClick={() => startReview(cards)} size="sm">
             Review Deck
           </Button>
           <Button onClick={() => onToggleExpansion(deck._id)} size="sm">

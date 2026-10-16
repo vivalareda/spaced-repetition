@@ -1,15 +1,18 @@
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
-import type { Id } from "@spaced-repetition-monorepo/backend/convex/_generated/dataModel";
+import type { Card } from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
 import { useQuery } from "convex/react";
 
 type ImageFlashCardContentProps = {
-  imageStorageId: Id<"_storage">;
+  cardId: Card["_id"];
+  side: "question" | "answer";
 };
 
+/** The image attached to one side of a card; renders nothing if there is none. */
 export function ImageFlashCardContent({
-  imageStorageId,
+  cardId,
+  side,
 }: ImageFlashCardContentProps) {
-  const imageUrl = useQuery(api.cards.getImageUrl, { imageStorageId });
+  const imageUrl = useQuery(api.cards.getImageUrl, { cardId, side });
 
   if (!imageUrl) {
     return null;

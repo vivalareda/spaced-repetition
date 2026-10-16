@@ -17,45 +17,48 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useModalStore } from "@/hooks/use-modal-store";
 
+const EMPTY_FORM = { deckName: "", deckDescription: "" };
+
 export function CreateDeckModal() {
   const { t } = useTranslation();
-  const { onSubmit, isOpen, onClose, type } = useModalStore();
+  const { onSubmit, onClose, type } = useModalStore();
   const navigate = useNavigate();
   const createDeck = useMutation(api.decks.createDeck);
-  const [formData, setFormData] = useState({
-    deckName: "",
-    deckDescription: "",
-  });
+  const [formData, setFormData] = useState(EMPTY_FORM);
 
-  const isModalOpen = isOpen && type === "create-deck";
+  const [hasFailed, setHasFailed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isModalOpen = type === "create-deck";
 
   if (!isModalOpen) {
     return null;
   }
 
   const closeModal = () => {
+    setFormData(EMPTY_FORM);
+    setHasFailed(false);
     onClose();
   };
 
-  const handleSubmit = () => {
-    createDeck(formData);
-    if (onSubmit) {
-      onSubmit();
+  // The backend rejects empty and duplicate names; keep the modal open so the
+  // user can fix the name.
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setHasFailed(false);
+    try {
+      await createDeck(formData);
+      if (onSubmit) {
+        await onSubmit();
+      } else {
+        navigate({ to: "/" });
+      }
+      closeModal();
+    } catch {
+      setHasFailed(true);
+    } finally {
+      setIsSubmitting(false);
     }
-    navigate({ to: "/" });
-    closeModal();
-    setFormData({
-      deckName: "",
-      deckDescription: "",
-    });
-  };
-
-  const handleCloseModal = () => {
-    setFormData({
-      deckName: "",
-      deckDescription: "",
-    });
-    closeModal();
   };
 
   const handleChange = (
@@ -70,7 +73,7 @@ export function CreateDeckModal() {
   };
 
   return (
-    <Dialog onOpenChange={handleCloseModal} open={isModalOpen}>
+    <Dialog onOpenChange={closeModal} open={isModalOpen}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("modals.createDeck.title")}</DialogTitle>
@@ -99,11 +102,19 @@ export function CreateDeckModal() {
               value={formData.deckDescription}
             />
           </div>
+          {hasFailed && (
+            <p className="text-red-600 text-sm">
+              {t("modals.createDeck.error")}
+            </p>
+          )}
           <DialogFooter>
             <Button onClick={closeModal}>
               {t("modals.createDeck.cancel")}
             </Button>
-            <Button onClick={handleSubmit}>
+            <Button
+              disabled={isSubmitting || formData.deckName.trim() === ""}
+              onClick={handleSubmit}
+            >
               {t("modals.createDeck.create")}
             </Button>
           </DialogFooter>

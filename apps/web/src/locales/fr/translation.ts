@@ -63,6 +63,8 @@ export default {
       descriptionLabel: "Description",
       cancel: "Annuler",
       create: "Créer un nouveau paquet",
+      error:
+        "Impossible de créer le paquet. Vérifiez que son nom n'est pas vide ou déjà utilisé.",
     },
     createCard: {
       title: "Créer une carte mémoire",
@@ -105,6 +107,25 @@ export default {
         "Êtes-vous sûr de vouloir supprimer cet élément ? Cette action ne peut pas être annulée.",
       confirm: "Supprimer",
       cancel: "Annuler",
+      error: "Une erreur est survenue. Veuillez réessayer.",
+    },
+    chooseDeck: {
+      title: "Choisir un paquet",
+      description:
+        "Sélectionnez un paquet pour commencer votre session de révision",
+      review: "Réviser",
+      noDecks: "Aucun paquet disponible",
+      createDeckFirst: "Créez d'abord un paquet pour commencer à réviser !",
+      emptyDeck:
+        "« {{deckName}} » ne contient encore aucune carte. Ajoutez-en d'abord.",
+    },
+    fileUpload: {
+      title: "Importer une image",
+      selectLabel: "Sélectionner un fichier image",
+      browse: "Parcourir les fichiers",
+      selected: "Sélectionné : {{fileName}}",
+      cancel: "Annuler",
+      upload: "Importer",
     },
   },
   flashcards: {
@@ -122,6 +143,17 @@ export default {
     mcq: {
       selectAnswer: "Sélectionnez votre réponse :",
       option: "Option",
+    },
+  },
+  review: {
+    rateError: "Impossible d'enregistrer votre évaluation. Veuillez réessayer.",
+    shortcutsHint:
+      "Raccourcis : Espace pour afficher la réponse, 1-4 pour évaluer (encore, difficile, moyen, facile)",
+    summary: {
+      title: "Session terminée",
+      description_one: "Vous avez terminé {{count}} révision. Bon travail !",
+      description_other: "Vous avez terminé {{count}} révisions. Bon travail !",
+      backHome: "Retour à l'accueil",
     },
   },
   index: {
@@ -319,19 +351,6 @@ export default {
       delete: "Supprimer la clé API",
       created: "Créée",
       lastUsed: "Dernièrement utilisée",
-    },
-    reviewSettings: {
-      title: "Paramètres de révision",
-      description:
-        "Configurez le fonctionnement de la répétition espacée pour vos cartes",
-      askAgainThreshold: "Seuil de demande à nouveau",
-      askAgainDescription:
-        "Le nombre minimum de fois qu'une question doit être répondue avant que les évaluations de difficulté de la spaced repetition soient prises en compte",
-      example:
-        "Exemple : si vous réglez sur 5, une carte ne sera pas marquée comme Facile/Moyen/Difficile jusqu'à ce qu'elle ait été répondue au moins 5 fois.",
-      times: "fois",
-      saveChanges: "Enregistrer les modifications",
-      cancel: "Annuler",
     },
   },
   copyCodeBlock: {

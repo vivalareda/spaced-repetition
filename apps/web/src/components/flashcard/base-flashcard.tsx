@@ -1,12 +1,10 @@
 import type { Difficulty } from "@shared/types";
 import {
   type Card as CardType,
-  type CardType as CardTypeEnum,
   isCodeCard,
   isImageCard,
   isMcqCard,
 } from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AnswerFlashCard } from "@/components/flashcard/answer-flashcard";
 import { CodeFlashCardContent } from "@/components/flashcard/code-flashcard-content";
@@ -20,13 +18,20 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 
+/**
+ * A card being reviewed. Reveal and rating state are owned by the caller (the
+ * review session), so keyboard shortcuts and buttons stay in sync.
+ */
 type FlashCardProps = {
-  type: CardTypeEnum;
   card: CardType;
-  totalQuestions: number;
-  correctAnswer: string;
+  /** 0-based position of this card in the session. */
   questionIndex: number;
-  onDifficultyClick: (cardId: CardType["_id"], difficulty: Difficulty) => void;
+  totalQuestions: number;
+  showAnswer: boolean;
+  onReveal: () => void;
+  /** The rating being saved, or null to show the rating buttons. */
+  pendingRating: Difficulty | null;
+  onRate: (difficulty: Difficulty) => void;
 };
 
 function FlashCardQuestion({ card }: { card: CardType }) {
@@ -47,7 +52,7 @@ function FlashCardQuestion({ card }: { card: CardType }) {
   }
 
   if (isImageCard(card) && card.questionFile) {
-    return <ImageFlashCardContent imageStorageId={card.questionFile} />;
+    return <ImageFlashCardContent cardId={card._id} side="question" />;
   }
 
   return null;
@@ -76,8 +81,8 @@ function FlashCardAnswer({
     );
   }
 
-  if (isImageCard(card) && card.answerFile) {
-    return <ImageFlashCardContent imageStorageId={card.answerFile} />;
+  if (showAnswer && isImageCard(card) && card.answerFile) {
+    return <ImageFlashCardContent cardId={card._id} side="answer" />;
   }
 
   return null;
@@ -93,26 +98,17 @@ const getCorrectAnswerText = (correctAnswer: string) => {
   });
 };
 
-export function FlashCard(props: FlashCardProps) {
+export function FlashCard({
+  card,
+  questionIndex,
+  totalQuestions,
+  showAnswer,
+  onReveal,
+  pendingRating,
+  onRate,
+}: FlashCardProps) {
   const { t } = useTranslation();
-  const {
-    card,
-    totalQuestions,
-    correctAnswer,
-    onDifficultyClick,
-    questionIndex,
-  } = props;
-
-  const [showAnswer, setShowAnswer] = useState(false);
-  const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
-
-  const handleDifficultyClick = (
-    cardId: CardType["_id"],
-    questionDifficulty: Difficulty
-  ) => {
-    setDifficulty(questionDifficulty);
-    onDifficultyClick(cardId, questionDifficulty);
-  };
+  const correctAnswer = card.answer;
 
   const isMcq = isMcqCard(card);
 
@@ -139,7 +135,7 @@ export function FlashCard(props: FlashCardProps) {
           {isMcq ? (
             <McqFlashCardContent
               correctOptionIndex={card.correctOptionIndex ?? 0}
-              onAnswerSelected={() => setShowAnswer(true)}
+              onAnswerSelected={onReveal}
               options={card.options ?? []}
             />
           ) : (
@@ -154,7 +150,7 @@ export function FlashCard(props: FlashCardProps) {
           <CardFooter className="flex justify-center pt-4">
             <AnswerFlashCard
               getCorrectAnswerText={() => getCorrectAnswerText(correctAnswer)}
-              setShowAnswer={setShowAnswer}
+              onReveal={onReveal}
               showAnswer={showAnswer}
             />
           </CardFooter>
@@ -174,8 +170,8 @@ export function FlashCard(props: FlashCardProps) {
       {showAnswer && (
         <DifficultyButtons
           card={card}
-          difficulty={difficulty}
-          onDifficultyClick={handleDifficultyClick}
+          difficulty={pendingRating}
+          onDifficultyClick={(_, difficulty) => onRate(difficulty)}
         />
       )}
     </>

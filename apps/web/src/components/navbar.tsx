@@ -1,5 +1,5 @@
-import { useClerk, useUser } from "@clerk/clerk-react";
-import { Link, redirect, useNavigate } from "@tanstack/react-router";
+import { useClerk } from "@clerk/clerk-react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useConvexAuth } from "convex/react";
 import { Globe, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -47,11 +47,6 @@ function AuthenticatedNav({
   const { t } = useTranslation();
   const { signOut } = useClerk();
 
-  const handleSignOut = () => {
-    signOut();
-    redirect({ to: "/hero" });
-  };
-
   return (
     <div className="sticky top-0 z-10 flex h-24 w-full items-center bg-white px-6 shadow-lg">
       <div className="hidden md:flex md:flex-1">
@@ -84,7 +79,7 @@ function AuthenticatedNav({
             <Settings className="h-4 w-4" />
           </Button>
         </div>
-        <Button onClick={handleSignOut} size="sm" variant="neutral">
+        <Button onClick={() => signOut()} size="sm" variant="neutral">
           {t("navbar.signOut")}
         </Button>
       </div>
@@ -98,11 +93,11 @@ function UnauthenticatedNav() {
   const navigate = useNavigate();
 
   const handleSignIn = () => {
-    onOpen("sign-in", true);
+    onOpen("sign-in");
   };
 
   const handleSignUp = () => {
-    // onOpen("sign-up", true);
+    // onOpen("sign-up");
     navigate({ to: "/sign-up" });
   };
 
@@ -144,7 +139,6 @@ function UnauthenticatedNav() {
 export function Navbar() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useConvexAuth();
-  const { user } = useUser();
 
   const handleDashboardClick = () => {
     navigate({ to: "/dashboard" });
@@ -155,9 +149,7 @@ export function Navbar() {
   };
 
   const handleSettingsClick = () => {
-    if (user?.id) {
-      navigate({ to: `/settings/${user.id}` });
-    }
+    navigate({ to: "/settings" });
   };
 
   return !isAuthenticated || isLoading ? (

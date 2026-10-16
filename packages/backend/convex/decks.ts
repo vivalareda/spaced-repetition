@@ -1,17 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { deleteCardAndFiles } from "./cards";
 import { getCurrentUserId } from "./users";
-
-export const get = query({
-  handler: async (ctx) => {
-    const userId = await getCurrentUserId(ctx);
-
-    return await ctx.db
-      .query("decks")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .collect();
-  },
-});
 
 export const createDeck = mutation({
   args: {
@@ -20,26 +10,26 @@ export const createDeck = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getCurrentUserId(ctx);
+    const deckName = args.deckName.trim();
+    if (deckName.length === 0) {
+      throw new Error("Deck name is required");
+    }
 
     const userDecks = await ctx.db
       .query("decks")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
-    if (
-      userDecks.find(
-        (d) => d.deckName.toLowerCase() === args.deckName.toLowerCase()
-      )
-    ) {
-      return { error: "deck already exists" };
+    const normalizedName = deckName.toLowerCase();
+    if (userDecks.some((d) => d.deckName.toLowerCase() === normalizedName)) {
+      throw new Error("Deck already exists");
     }
 
-    const deck = await ctx.db.insert("decks", {
+    return await ctx.db.insert("decks", {
       userId,
-      deckName: args.deckName,
+      deckName,
       deckDescription: args.deckDescription,
     });
-    return deck;
   },
 });
 
@@ -67,7 +57,7 @@ export const deleteDeck = mutation({
       .collect();
 
     for (const card of cardsInDeck) {
-      await ctx.db.delete(card._id);
+      await deleteCardAndFiles(ctx, card);
     }
 
     await ctx.db.delete(args.deckId);
@@ -96,35 +86,5 @@ export const getUserDecksNames = query({
       .collect();
 
     return decks.map((deck) => deck.deckName);
-  },
-});
-
-export const getDecksWithCardCount = query({
-  handler: async (ctx) => {
-    const userId = await getCurrentUserId(ctx);
-
-    const decks = await ctx.db
-      .query("decks")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .collect();
-
-    const decksWithCounts = await Promise.all(
-      decks.map(async (deck) => {
-        const cardCount = await ctx.db
-          .query("cards")
-          .withIndex("by_user_deck", (q) =>
-            q.eq("userId", userId).eq("deckId", deck._id)
-          )
-          .collect()
-          .then((cards) => cards.length);
-
-        return {
-          ...deck,
-          cardCount,
-        };
-      })
-    );
-
-    return decksWithCounts;
   },
 });

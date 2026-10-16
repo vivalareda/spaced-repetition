@@ -59,6 +59,8 @@ export default {
       descriptionLabel: "Description",
       cancel: "Cancel",
       create: "Create New Deck",
+      error:
+        "Couldn't create the deck. Make sure its name isn't empty or already used.",
     },
     createCard: {
       title: "Create a flashcard",
@@ -100,6 +102,23 @@ export default {
         "Are you sure you want to delete this item? This action cannot be undone.",
       confirm: "Delete",
       cancel: "Cancel",
+      error: "Something went wrong. Please try again.",
+    },
+    chooseDeck: {
+      title: "Choose a Deck",
+      description: "Select a deck to start your review session",
+      review: "Review",
+      noDecks: "No decks available",
+      createDeckFirst: "Create a deck first to start reviewing!",
+      emptyDeck: '"{{deckName}}" has no cards yet. Add some cards first.',
+    },
+    fileUpload: {
+      title: "Upload Image",
+      selectLabel: "Select Image File",
+      browse: "Browse Files",
+      selected: "Selected: {{fileName}}",
+      cancel: "Cancel",
+      upload: "Upload",
     },
   },
   flashcards: {
@@ -117,6 +136,17 @@ export default {
     mcq: {
       selectAnswer: "Select your answer:",
       option: "Option",
+    },
+  },
+  review: {
+    rateError: "Couldn't save your rating. Please try again.",
+    shortcutsHint:
+      "Shortcuts: Space to show the answer, 1-4 to rate (again, hard, medium, easy)",
+    summary: {
+      title: "Session complete",
+      description_one: "You completed {{count}} review. Nice work!",
+      description_other: "You completed {{count}} reviews. Nice work!",
+      backHome: "Back to home",
     },
   },
   index: {
@@ -306,18 +336,6 @@ export default {
       delete: "Delete API key",
       created: "Created",
       lastUsed: "Last used",
-    },
-    reviewSettings: {
-      title: "Review Settings",
-      description: "Configure how spaced repetition works for your cards",
-      askAgainThreshold: "Ask Again Threshold",
-      askAgainDescription:
-        "The minimum number of times a question must be answered before spaced repetition difficulty ratings are considered",
-      example:
-        "Example: If set to 5, a card won't be marked as Easy/Medium/Hard until it's been answered at least 5 times.",
-      times: "times",
-      saveChanges: "Save Changes",
-      cancel: "Cancel",
     },
   },
   copyCodeBlock: {

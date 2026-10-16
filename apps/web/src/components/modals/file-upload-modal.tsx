@@ -1,5 +1,6 @@
 import { validateImageFile } from "@shared/types";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,6 +22,7 @@ export function FileUploadModal({
   onClose,
   onSave,
 }: FileUploadModalProps) {
+  const { t } = useTranslation();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -75,11 +77,11 @@ export function FileUploadModal({
     <Dialog onOpenChange={onClose} open={isOpen !== null}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Upload Image</DialogTitle>
+          <DialogTitle>{t("modals.fileUpload.title")}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="file">Select Image File</Label>
+            <Label htmlFor="file">{t("modals.fileUpload.selectLabel")}</Label>
             <input
               accept="image/*"
               className="hidden"
@@ -94,11 +96,13 @@ export function FileUploadModal({
               type="button"
               variant="neutral"
             >
-              Browse Files
+              {t("modals.fileUpload.browse")}
             </Button>
             {selectedFile && (
               <div className="text-gray-600 text-sm">
-                Selected: {selectedFile.name}
+                {t("modals.fileUpload.selected", {
+                  fileName: selectedFile.name,
+                })}
               </div>
             )}
             {error && <div className="text-red-600 text-sm">{error}</div>}
@@ -106,10 +110,10 @@ export function FileUploadModal({
         </div>
         <DialogFooter>
           <Button onClick={handleCancel} variant="neutral">
-            Cancel
+            {t("modals.fileUpload.cancel")}
           </Button>
           <Button disabled={!selectedFile || !!error} onClick={handleSave}>
-            Upload
+            {t("modals.fileUpload.upload")}
           </Button>
         </DialogFooter>
       </DialogContent>

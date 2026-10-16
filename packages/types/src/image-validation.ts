@@ -8,15 +8,23 @@ export type ImageValidationResult =
   | { valid: true }
   | { valid: false; error: string };
 
-export function validateImageFile(file: File): ImageValidationResult {
+/**
+ * Checks an image's size and MIME type against the upload limits. Accepts a
+ * browser `File` as well as Convex's stored-file metadata, so the client and
+ * server enforce identical rules with identical messages.
+ */
+export function validateImageFile(file: {
+  size: number;
+  type: string | undefined;
+}): ImageValidationResult {
   if (file.size > MAX_FILE_SIZE) {
     return {
       valid: false,
-      error: `File size must be less than ${MAX_FILE_SIZE / KILOBYTE / KILOBYTE}MB. Your file is ${(file.size / KILOBYTE / KILOBYTE).toFixed(2)}MB.`,
+      error: `File size must be less than ${MAX_FILE_SIZE / MEGABYTE}MB. Your file is ${(file.size / MEGABYTE).toFixed(2)}MB.`,
     };
   }
 
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+  if (file.type === undefined || !ALLOWED_IMAGE_TYPES.includes(file.type)) {
     return {
       valid: false,
       error: `File type not allowed. Accepted types: ${ALLOWED_IMAGE_TYPES.join(", ")}`,

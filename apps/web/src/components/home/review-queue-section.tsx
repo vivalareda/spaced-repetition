@@ -1,4 +1,7 @@
-import type { Card, Deck } from "@shared/types";
+import type {
+  Card,
+  Deck,
+} from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
 import { useTranslation } from "react-i18next";
 
 type ReviewQueueListProps = {
