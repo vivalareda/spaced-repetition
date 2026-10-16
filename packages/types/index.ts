@@ -1,47 +1,50 @@
+// Package entry point: re-exports the shared modules under `src/`.
+// biome-ignore-all lint/performance/noBarrelFile: this is the package's public API
+
 // ============================================
 // Form Types
-
+// ============================================
 export type {
+  BaseFormData,
   CodeFormData,
   FormDataType,
   ImageFormData,
   McqFormData,
   TextFormData,
 } from "./src/form-data";
-
-export type Difficulty = "easy" | "medium" | "hard" | "again";
-// ============================================
+export {
+  isCodeFormData,
+  isImageFormData,
+  isMcqFormData,
+  isTextFormData,
+} from "./src/form-data";
 
 // ============================================
 // Image Validation
 // ============================================
-export const KILOBYTE = 1024;
-export const MEGABYTE = KILOBYTE * KILOBYTE;
-export const MAX_IMAGE_FILE_SIZE_MB = 5;
-export const MAX_FILE_SIZE = MAX_IMAGE_FILE_SIZE_MB * MEGABYTE;
-export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+export type { ImageValidationResult } from "./src/image-validation";
+export {
+  ALLOWED_IMAGE_TYPES,
+  KILOBYTE,
+  MAX_FILE_SIZE,
+  MAX_IMAGE_FILE_SIZE_MB,
+  MEGABYTE,
+  validateImageFile,
+} from "./src/image-validation";
 
-export type ImageValidationResult =
-  | { valid: true }
-  | { valid: false; error: string };
-
-export function validateImageFile(file: File): ImageValidationResult {
-  if (file.size > MAX_FILE_SIZE) {
-    return {
-      valid: false,
-      error: `File size must be less than ${MAX_FILE_SIZE / MEGABYTE}MB. Your file is ${(file.size / MEGABYTE).toFixed(2)}MB.`,
-    };
-  }
-
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    return {
-      valid: false,
-      error: `File type not allowed. Accepted types: ${ALLOWED_IMAGE_TYPES.join(", ")}`,
-    };
-  }
-
-  return { valid: true };
-}
+// ============================================
+// Scheduling
+// ============================================
+export type {
+  Difficulty,
+  ScheduleResult,
+  SchedulingState,
+} from "./src/scheduler";
+export {
+  INITIAL_SCHEDULING_STATE,
+  RATINGS,
+  schedule,
+} from "./src/scheduler";
 
 // ============================================
 // Constants

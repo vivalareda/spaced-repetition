@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import "i18next";
 import { ArrowRight } from "lucide-react";
@@ -8,11 +8,6 @@ import { useModalStore } from "@/hooks/use-modal-store";
 
 export const Route = createFileRoute("/hero")({
   component: HeroPage,
-  beforeLoad: ({ context }) => {
-    if (context.isAuthenticated) {
-      throw redirect({ to: "/" });
-    }
-  },
 });
 
 function HeroPage() {
@@ -32,7 +27,7 @@ function HeroPage() {
               {t("hero.subtitle")}
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Button onClick={() => onOpen("sign-up", true)} size="lg">
+              <Button onClick={() => onOpen("sign-up")} size="lg">
                 {t("hero.startLearning")} <ArrowRight className="ml-2 size-5" />
               </Button>
             </div>

@@ -6,7 +6,8 @@
     "build": "vite build",
     "serve": "vite preview",
     "dev": "vite dev --port=3001",
-    "lint": "npx ultracite check"
+    "lint": "npx ultracite check",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.51.0",

@@ -5,9 +5,9 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useModalStore } from "@/hooks/use-modal-store";
 
 export function SignUpModal() {
-  const { isOpen, type, onClose } = useModalStore();
+  const { type, onClose } = useModalStore();
   const { user, isSignedIn } = useUser();
-  const isModalOpen = isOpen && type === "sign-up";
+  const isModalOpen = type === "sign-up";
 
   useEffect(() => {
     if (isSignedIn && user) {

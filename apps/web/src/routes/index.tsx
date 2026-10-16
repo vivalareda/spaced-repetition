@@ -1,6 +1,4 @@
-import { convexQuery } from "@convex-dev/react-query";
-import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { CalendarDays } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Loading } from "@/components/dashboard/loading";
@@ -16,7 +14,7 @@ import {
 import { UsersWithoutData } from "@/components/user-without-data";
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut";
 import { useModalStore } from "@/hooks/use-modal-store";
-import { useSessionStore } from "@/hooks/use-session-store";
+import { useStartReview } from "@/hooks/use-review-session";
 import { useUserData } from "@/hooks/use-user-data";
 
 const PREVIEW_CARDS_COUNT = 4;
@@ -25,24 +23,6 @@ const EVENING_HOUR_THRESHOLD = 18;
 
 export const Route = createFileRoute("/")({
   component: Index,
-  beforeLoad: ({ context }) => {
-    if (!context.isAuthenticated) {
-      throw redirect({ to: "/hero" });
-    }
-  },
-  loader: async ({ context }) => {
-    if (context.isAuthenticated && context.userSynced) {
-      await Promise.all([
-        context.queryClient.prefetchQuery(convexQuery(api.cards.get, {})),
-        context.queryClient.prefetchQuery(
-          convexQuery(api.decks.getUserDecks, {})
-        ),
-        context.queryClient.prefetchQuery(
-          convexQuery(api.cards.getDueToday, {})
-        ),
-      ]);
-    }
-  },
 });
 
 type HomePageStatsCardProps = {
@@ -98,27 +78,24 @@ function HomePageStatsCard({
 
 function Index() {
   const { t } = useTranslation();
-  const { userCards, userDecks, cardsDueToday, isLoading, isEmpty } =
-    useUserData();
+  const userData = useUserData();
   const { onOpen } = useModalStore();
-  const { startSession } = useSessionStore();
-  const navigate = useNavigate();
+  const startReview = useStartReview();
   useKeyboardShortcut();
 
-  if (isLoading) {
+  if (!userData) {
     return <Loading />;
   }
 
-  if (isEmpty) {
+  const { cards, decks: userDecks, dueToday } = userData;
+
+  if (cards.length === 0 && userDecks.length === 0) {
     return <UsersWithoutData />;
   }
 
-  const dueToday = cardsDueToday || [];
-  const allCards = userCards || [];
-
   const dueTodayCount = dueToday.length;
-  const totalCards = allCards.length;
-  const decks = userDecks?.length || 0;
+  const totalCards = cards.length;
+  const decks = userDecks.length;
   const nextUp = dueToday.slice(0, PREVIEW_CARDS_COUNT);
 
   const greeting = getTimeOfDayGreeting(t);
@@ -128,20 +105,15 @@ function Index() {
       : t("index.hero.subtitle.noReviews");
 
   const handleCreateCard = () => {
-    onOpen("create-card", true);
+    onOpen("create-card");
   };
 
   const handleReviewDeck = () => {
-    onOpen("choose-deck", true);
+    onOpen("choose-deck");
   };
 
   const handleReviewCard = () => {
-    const cardsToReview = cardsDueToday || [];
-    if (cardsToReview.length > 0) {
-      startSession(cardsToReview);
-      navigate({ to: "/" });
-    }
-    navigate({ to: "/review" });
+    startReview(dueToday);
   };
 
   return (

@@ -8,9 +8,9 @@ import {
 import { useModalStore } from "@/hooks/use-modal-store";
 
 export function SignInModal() {
-  const { isOpen, type, onClose } = useModalStore();
+  const { type, onClose } = useModalStore();
 
-  const isModalOpen = isOpen && type === "sign-in";
+  const isModalOpen = type === "sign-in";
 
   return (
     <Dialog onOpenChange={onClose} open={isModalOpen}>

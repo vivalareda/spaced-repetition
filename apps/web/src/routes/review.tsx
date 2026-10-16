@@ -1,75 +1,80 @@
-import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
-import {
-  type Card,
-  resolveCardType,
-} from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "convex/react";
-import { useState } from "react";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
+import { Loading } from "@/components/dashboard/loading";
 import { FlashCard } from "@/components/flashcard/base-flashcard";
+import { Button } from "@/components/ui/button";
 import {
-  Carousel,
-  type CarouselApi,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import { useSessionStore } from "@/hooks/use-session-store";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useReviewSession } from "@/hooks/use-review-session";
 
 export const Route = createFileRoute("/review")({
   component: ReviewPage,
 });
 
 function ReviewPage() {
-  const { reviewQueue } = useSessionStore();
-  const [carouselApi, setCarouselApi] = useState<CarouselApi | undefined>(
-    undefined
-  );
-  const updateNextReviewDate = useMutation(api.cards.updateNextReviewDate);
-  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const session = useReviewSession();
 
-  if (!reviewQueue || reviewQueue.length === 0) {
-    navigate({
-      to: "/dashboard",
-    });
+  switch (session.status) {
+    case "none":
+      return <Navigate to="/dashboard" />;
+    case "loading":
+      return <Loading />;
+    case "finished":
+      return <SessionSummary reviewedCount={session.reviewedCount} />;
+    case "reviewing":
+      return (
+        <div className="flex flex-col items-center justify-center gap-4 p-18">
+          <div className="w-full max-w-4xl p-[10px]">
+            <FlashCard
+              card={session.card}
+              key={session.showingKey}
+              onRate={session.rate}
+              onReveal={session.reveal}
+              pendingRating={session.pendingRating}
+              questionIndex={session.position}
+              showAnswer={session.isRevealed}
+              totalQuestions={session.total}
+            />
+          </div>
+          {session.rateFailed && (
+            <p className="text-red-600 text-sm">{t("review.rateError")}</p>
+          )}
+          <p className="text-muted-foreground text-xs">
+            {t("review.shortcutsHint")}
+          </p>
+        </div>
+      );
+    default:
+      throw new Error(`Unknown session status: ${session satisfies never}`);
   }
+}
 
-  const onDifficultyClick = (cardId: Card["_id"], difficulty: string) => {
-    updateNextReviewDate({
-      cardId,
-      difficulty,
-    });
-    if (carouselApi?.canScrollNext()) {
-      carouselApi.scrollNext();
-    }
-  };
+function SessionSummary({ reviewedCount }: { reviewedCount: number }) {
+  const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col items-center justify-center p-18">
-      <Carousel className="w-full max-w-4xl" setApi={setCarouselApi}>
-        <CarouselContent>
-          {reviewQueue.map((data, index) => {
-            const type = resolveCardType(data);
-            return (
-              <CarouselItem key={data._id}>
-                <div className="p-[10px]">
-                  <FlashCard
-                    card={data}
-                    correctAnswer={data.answer}
-                    onDifficultyClick={onDifficultyClick}
-                    questionIndex={index}
-                    totalQuestions={reviewQueue.length}
-                    type={type}
-                  />
-                </div>
-              </CarouselItem>
-            );
-          })}
-        </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
-      </Carousel>
+    <div className="flex h-full w-full items-center justify-center p-6">
+      <Card className="w-full max-w-md bg-white text-center">
+        <CardHeader>
+          <CardTitle className="font-heading text-2xl">
+            {t("review.summary.title")}
+          </CardTitle>
+          <CardDescription>
+            {t("review.summary.description", { count: reviewedCount })}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center">
+          <Button asChild>
+            <Link to="/">{t("review.summary.backHome")}</Link>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

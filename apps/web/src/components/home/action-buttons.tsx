@@ -47,7 +47,7 @@ function ActionsButtons({ onCreateCard, onReviewDeck }: ActionsButtonsProps) {
       <Button onClick={onReviewDeck} size="sm">
         {t("index.buttons.reviewByDeck")}
       </Button>
-      <Button onClick={() => onOpen("create-deck", true)} size="sm">
+      <Button onClick={() => onOpen("create-deck")} size="sm">
         {t("index.buttons.createDeck")}
       </Button>
     </>

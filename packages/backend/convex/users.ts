@@ -1,110 +1,30 @@
+import type { Doc } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
 
-export const current = query({
-  args: {},
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return null;
-    }
+// ============================================
+// Identity -> user lookup helpers
+// ============================================
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
-
-    return user;
-  },
-});
-
-export const getApiKey = query({
-  args: {},
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return null;
-    }
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
-    if (!user) {
-      return null;
-    }
-    const apiKey = await ctx.db
-      .query("apiKeys")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .unique();
-    return apiKey?.apiKey ?? null;
-  },
-});
-
-export const deleteApiKey = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
-    if (!user) {
-      throw new Error("User not found");
-    }
-    const apiKey = await ctx.db
-      .query("apiKeys")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .unique();
-    if (!apiKey) {
-      throw new Error("API key not found");
-    }
-
-    await ctx.db.delete(apiKey._id);
-  },
-});
-
-export const createUserApiKey = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
-    if (!user) {
-      throw new Error("User not found");
-    }
-    const apiKey = crypto.randomUUID();
-    await ctx.db.insert("apiKeys", {
-      userId: user._id,
-      apiKey,
-    });
-
-    return apiKey;
-  },
-});
-
-export async function getCurrentUser(ctx: QueryCtx | MutationCtx) {
+/** The logged-in user's document, or null when logged out or not yet synced. */
+export async function findCurrentUser(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
-    throw new Error("Not authenticated");
+    return null;
   }
 
-  const user = await ctx.db
+  return await ctx.db
     .query("users")
     .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
     .unique();
+}
 
+/** Like `findCurrentUser`, but throws when there is no logged-in user. */
+export async function getCurrentUser(ctx: QueryCtx | MutationCtx) {
+  const user = await findCurrentUser(ctx);
   if (!user) {
-    throw new Error("User not found");
+    throw new Error("Not authenticated");
   }
-
   return user;
 }
 
@@ -129,6 +49,63 @@ export async function getUserByApiKey(
   return apiKeyDoc.userId;
 }
 
+async function findApiKeyDoc(ctx: QueryCtx | MutationCtx, user: Doc<"users">) {
+  return await ctx.db
+    .query("apiKeys")
+    .withIndex("by_user", (q) => q.eq("userId", user._id))
+    .unique();
+}
+
+// ============================================
+// Public functions
+// ============================================
+
+export const current = query({
+  args: {},
+  handler: async (ctx) => await findCurrentUser(ctx),
+});
+
+export const getApiKey = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await findCurrentUser(ctx);
+    if (!user) {
+      return null;
+    }
+    const apiKeyDoc = await findApiKeyDoc(ctx, user);
+    return apiKeyDoc?.apiKey ?? null;
+  },
+});
+
+export const deleteApiKey = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    const apiKeyDoc = await findApiKeyDoc(ctx, user);
+    if (!apiKeyDoc) {
+      throw new Error("API key not found");
+    }
+
+    await ctx.db.delete(apiKeyDoc._id);
+  },
+});
+
+/** Returns the user's API key, creating one only if they don't have one yet. */
+export const createUserApiKey = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    const existing = await findApiKeyDoc(ctx, user);
+    if (existing) {
+      return existing.apiKey;
+    }
+
+    const apiKey = crypto.randomUUID();
+    await ctx.db.insert("apiKeys", { userId: user._id, apiKey });
+    return apiKey;
+  },
+});
+
 export const upsertFromClerk = mutation({
   args: {},
   handler: async (ctx) => {
@@ -137,23 +114,17 @@ export const upsertFromClerk = mutation({
       throw new Error("Called upsertFromClerk without authentication present");
     }
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
-
-    if (user !== null) {
-      if (user.email === undefined) {
-        user.email = identity.email;
+    const user = await findCurrentUser(ctx);
+    if (user) {
+      if (user.email === undefined && identity.email !== undefined) {
+        await ctx.db.patch(user._id, { email: identity.email });
       }
       return user._id;
     }
 
-    const userId = await ctx.db.insert("users", {
+    return await ctx.db.insert("users", {
       clerkId: identity.subject,
       email: identity.email,
     });
-
-    return userId;
   },
 });

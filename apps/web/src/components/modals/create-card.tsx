@@ -1,5 +1,9 @@
-import { MINIMUM_DEBOUNCE_TIME, QUESTION_TYPES } from "@shared/types";
-import { isImageFormData, isMcqFormData } from "@shared/types/form-data";
+import {
+  isImageFormData,
+  isMcqFormData,
+  MINIMUM_DEBOUNCE_TIME,
+  QUESTION_TYPES,
+} from "@shared/types";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
 import type { Id } from "@spaced-repetition-monorepo/backend/convex/_generated/dataModel";
 import { useNavigate } from "@tanstack/react-router";
@@ -24,14 +28,14 @@ import { useModalStore } from "@/hooks/use-modal-store";
 
 export function CreateCardModal() {
   const { t } = useTranslation();
-  const { onSubmit, isOpen, onClose, type, questionType } = useModalStore();
+  const { onSubmit, onClose, type, questionType } = useModalStore();
   const navigate = useNavigate();
   const [shouldFetchDecks, setShouldFetchDecks] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { formData, dispatch, handlers } = useCardForm();
 
-  const isModalOpen = isOpen && type === "create-card";
+  const isModalOpen = type === "create-card";
   const createCard = useMutation(api.cards.createCard);
   const currentUser = useQuery(api.users.current, isModalOpen ? {} : "skip");
 
@@ -125,8 +129,9 @@ export function CreateCardModal() {
 
       if (onSubmit) {
         await onSubmit();
+      } else {
+        navigate({ to: "/" });
       }
-      navigate({ to: "/" });
       closeModal();
     } catch (error) {
       setSubmitError(

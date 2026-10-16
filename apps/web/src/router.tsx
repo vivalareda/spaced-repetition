@@ -1,25 +1,30 @@
 /** biome-ignore-all lint/nursery/useConsistentTypeDefinitions: <config file> */
 /** biome-ignore-all lint/style/noNonNullAssertion: <config file> */
-import { StrictMode } from "react";
+import { StrictMode, useEffect } from "react";
 
 import "./index.css";
 import { ClerkProvider, useAuth } from "@clerk/clerk-react";
 import { ConvexQueryClient } from "@convex-dev/react-query";
+import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
-import { ConvexReactClient, useConvexAuth } from "convex/react";
+import { ConvexReactClient, useConvexAuth, useMutation } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { PostHogProvider } from "posthog-js/react";
 import ReactDOM from "react-dom/client";
 import { I18nextProvider } from "react-i18next";
-import { useUserData } from "./hooks/use-user-data";
+import { useUserSynced } from "./hooks/use-user-data";
 import i18n from "./i18n";
 import { routeTree } from "./routeTree.gen";
 
+/**
+ * Available to every route's `beforeLoad`/`loader`. Auth redirects are handled
+ * once, in the root route's `beforeLoad`.
+ */
 export type RootContext = {
   queryClient: QueryClient;
   isAuthenticated: boolean;
-  isLoading: boolean | undefined;
+  /** Whether user-scoped queries can run yet (see `useUserSynced`). */
   userSynced: boolean;
 };
 
@@ -43,7 +48,6 @@ const router = createRouter({
   context: {
     queryClient,
     isAuthenticated: false,
-    isLoading: undefined,
     userSynced: false,
   },
 });
@@ -56,8 +60,28 @@ declare module "@tanstack/react-router" {
 
 function RouterApp() {
   const { isAuthenticated, isLoading } = useConvexAuth();
-  const { userSynced } = useUserData();
+  const userSynced = useUserSynced();
+  const upsertUser = useMutation(api.users.upsertFromClerk);
 
+  // Creates/updates the user's Convex record on login; `userSynced` flips to
+  // true once it exists.
+  useEffect(() => {
+    if (isAuthenticated) {
+      upsertUser();
+    }
+  }, [isAuthenticated, upsertUser]);
+
+  // Re-runs the root auth redirect and the loaders when auth state changes
+  // (sign in, sign out, user record created).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the auth values are the triggers, not inputs
+  useEffect(() => {
+    if (!isLoading) {
+      router.invalidate();
+    }
+  }, [isAuthenticated, isLoading, userSynced]);
+
+  // Routes only render once auth is known, so redirects never act on a
+  // provisional "signed out" state.
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -68,12 +92,7 @@ function RouterApp() {
 
   return (
     <RouterProvider
-      context={{
-        queryClient,
-        isAuthenticated,
-        isLoading,
-        userSynced,
-      }}
+      context={{ queryClient, isAuthenticated, userSynced }}
       router={router}
     />
   );

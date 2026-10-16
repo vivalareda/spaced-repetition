@@ -3,6 +3,8 @@ import { type ChangeEvent, useMemo, useReducer } from "react";
 
 const DEFAULT_MCQ_OPTIONS = ["", ""];
 const DEFAULT_CORRECT_OPTION_INDEX = 0;
+// Matches the language the code editor previews when none is picked.
+const DEFAULT_CODE_LANGUAGE = "javascript";
 
 type FormAction =
   | { type: "CHANGE_TYPE"; payload: "text" | "code" | "image" | "mcq" }
@@ -25,7 +27,7 @@ const formReducer = (state: FormDataType, action: FormAction): FormDataType => {
             type: "code",
             questionCode: "",
             answerCode: "",
-            language: "",
+            language: DEFAULT_CODE_LANGUAGE,
             deck: state.deck,
             tags: state.tags,
             question: state.question,

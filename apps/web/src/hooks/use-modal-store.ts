@@ -1,6 +1,7 @@
+import type { QUESTION_TYPES } from "@shared/types";
 import { create } from "zustand";
 
-type QuestionType = "text" | "code" | "image" | "mcq";
+type QuestionType = (typeof QUESTION_TYPES)[number];
 
 type ModalType =
   | "create-card"
@@ -9,30 +10,30 @@ type ModalType =
   | "code-block"
   | "confirm"
   | "sign-in"
-  | "sign-up"
-  | null;
+  | "sign-up";
 
-type ModalStore = {
-  type: ModalType;
-  isOpen: boolean;
-  modalData: null;
-  onSubmit?: () => void | Promise<void>;
+type OpenOptions = {
+  /** Preselects the question type of the create-card modal. */
   questionType?: QuestionType;
-  onOpen: (
-    type: ModalType,
-    isOpen: boolean,
-    questionType?: QuestionType,
-    onSubmit?: () => void | Promise<void>
-  ) => void;
+  /** The modal's primary action (e.g. confirm, after create); awaited if it returns a promise. */
+  onSubmit?: () => unknown;
+};
+
+type ModalStore = OpenOptions & {
+  /** The open modal, or null when none is open. */
+  type: ModalType | null;
+  onOpen: (type: ModalType, options?: OpenOptions) => void;
   onClose: () => void;
 };
 
 export const useModalStore = create<ModalStore>((set) => ({
   type: null,
-  isOpen: false,
-  modalData: null,
-  onSubmit: undefined,
-  onOpen: (type, isOpen, questionType, onSubmit) =>
-    set({ type, isOpen, questionType, onSubmit }),
-  onClose: () => set({ type: null, isOpen: false }),
+  onOpen: (type, options = {}) =>
+    set({
+      type,
+      questionType: options.questionType,
+      onSubmit: options.onSubmit,
+    }),
+  onClose: () =>
+    set({ type: null, questionType: undefined, onSubmit: undefined }),
 }));

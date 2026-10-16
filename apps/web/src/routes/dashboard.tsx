@@ -1,10 +1,8 @@
-import { convexQuery } from "@convex-dev/react-query";
-import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
 import type {
   Card as CardData,
   Deck as DeckType,
 } from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { BookOpen, CircleQuestionMark } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -23,31 +21,18 @@ import { useUserData } from "@/hooks/use-user-data";
 
 export const Route = createFileRoute("/dashboard")({
   component: RouteComponent,
-  beforeLoad: ({ context }) => {
-    if (!context.isAuthenticated) {
-      throw redirect({ to: "/hero" });
-    }
-  },
-  loader: async ({ context }) => {
-    if (context.userSynced && context.isAuthenticated) {
-      await context.queryClient.prefetchQuery(
-        convexQuery(api.decks.getDecksWithCardCount, {})
-      );
-    }
-  },
 });
 
 function RouteComponent() {
   const { t } = useTranslation();
-  const { userCards, userDecksWithCardCount, cardsDueToday, userDecks } =
-    useUserData();
+  const userData = useUserData();
   const { confirmDeleteDeck, confirmDeleteCard } = useDeckDeletion();
 
   const [expandedDeck, setExpandedDeck] = useState<DeckType["_id"] | null>(
     null
   );
 
-  if (userDecksWithCardCount === undefined || userCards === undefined) {
+  if (!userData) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <Card className="w-full max-w-md border-border/60 backdrop-blur">
@@ -69,6 +54,8 @@ function RouteComponent() {
     );
   }
 
+  const { cards: userCards, decks: userDecks, dueToday } = userData;
+
   const getCardsForDeck = (deckId: DeckType["_id"]) =>
     userCards.filter((card) => card.deckId === deckId);
 
@@ -85,7 +72,7 @@ function RouteComponent() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <StatsSection
           decks={userDecks.length}
-          dueTodayCount={cardsDueToday.length}
+          dueTodayCount={dueToday.length}
           totalCards={userCards.length}
         />
       </div>
@@ -98,7 +85,7 @@ function RouteComponent() {
           <CardDescription>{t("dashboard.manageDecks")}</CardDescription>
         </CardHeader>
         <CardContent>
-          {userDecksWithCardCount.length === 0 ? (
+          {userDecks.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">
               <BookOpen className="mx-auto mb-4 h-12 w-12 opacity-50" />
               <p>{t("dashboard.noDecks")}</p>
@@ -106,7 +93,7 @@ function RouteComponent() {
             </div>
           ) : (
             <div className="space-y-3">
-              {userDecksWithCardCount.map((deck) => (
+              {userDecks.map((deck) => (
                 <Deck
                   cards={getCardsForDeck(deck._id)}
                   deck={deck}

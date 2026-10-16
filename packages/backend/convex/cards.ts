@@ -1,36 +1,247 @@
-import { ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE, MEGABYTE } from "@shared/types";
-import { v } from "convex/values";
-import type { Id } from "./_generated/dataModel";
-import { mutation, query } from "./_generated/server";
+import {
+  INITIAL_SCHEDULING_STATE,
+  RATINGS,
+  schedule,
+  validateImageFile,
+} from "@shared/types";
+import { type Infer, v } from "convex/values";
+import type { Doc, Id } from "./_generated/dataModel";
+import {
+  type MutationCtx,
+  mutation,
+  type QueryCtx,
+  query,
+} from "./_generated/server";
 import { getCurrentUserId, getUserByApiKey } from "./users";
 
-const INITIAL_EASE_FACTOR = 2.5;
+const MIN_MCQ_OPTIONS = 2;
 
-const MIN_EASE_FACTOR = 1.3;
+const cardTypeValidator = v.union(
+  v.literal("text"),
+  v.literal("code"),
+  v.literal("image"),
+  v.literal("mcq")
+);
 
-const AGAIN_EASE_PENALTY = 0.2;
-const HARD_EASE_PENALTY = 0.15;
-const EASY_EASE_BONUS = 0.15;
+const difficultyValidator = v.union(
+  ...RATINGS.map((rating) => v.literal(rating))
+);
 
-const HARD_INTERVAL_MULTIPLIER = 1.2;
-const EASY_INTERVAL_BONUS = 1.3;
+const cardSideValidator = v.union(v.literal("question"), v.literal("answer"));
 
-const MS_PER_SECOND = 1000;
-const SECONDS_PER_MINUTE = 60;
-const MINUTES_PER_HOUR = 60;
-const HOURS_PER_DAY = 24;
-const MS_PER_DAY =
-  HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MS_PER_SECOND;
-const LEARNING_STEP_1 = 1;
-const LEARNING_STEP_2 = 6;
+// ============================================
+// Card creation
+// ============================================
 
-const HARD_LEARNING_STEP_1 = 1;
-const HARD_LEARNING_STEP_2 = 3;
+/** Every field a client may set when creating a card, whatever its type. */
+const cardInputValidator = v.object({
+  cardType: cardTypeValidator,
 
-const EASY_LEARNING_STEP_1 = 4;
-const EASY_LEARNING_STEP_2 = 10;
+  question: v.string(),
+  questionCode: v.optional(v.string()),
+  questionFile: v.optional(v.id("_storage")),
 
-const AGAIN_INTERVAL = 1;
+  answer: v.string(),
+  answerCode: v.optional(v.string()),
+  answerFile: v.optional(v.id("_storage")),
+
+  options: v.optional(v.array(v.string())),
+  correctOptionIndex: v.optional(v.number()),
+
+  language: v.optional(v.string()),
+  /** Name of an existing deck. Unknown names leave the card without a deck. */
+  deck: v.optional(v.string()),
+  tags: v.optional(v.array(v.string())),
+});
+
+type CardInput = Infer<typeof cardInputValidator>;
+
+/** Rejects stored files that exceed the size limit or aren't allowed images. */
+async function assertValidStoredImage(
+  ctx: MutationCtx,
+  storageId: Id<"_storage">
+) {
+  const file = await ctx.db.system.get(storageId);
+  if (!file) {
+    throw new Error("Uploaded file not found");
+  }
+  const result = validateImageFile({
+    size: file.size,
+    type: file.contentType,
+  });
+  if (!result.valid) {
+    throw new Error(result.error);
+  }
+}
+
+/** Throws if the fields required by `input.cardType` are missing or invalid. */
+async function validateCardInput(ctx: MutationCtx, input: CardInput) {
+  switch (input.cardType) {
+    case "text":
+      return;
+
+    case "mcq": {
+      const { options, correctOptionIndex } = input;
+      if (!options || options.length < MIN_MCQ_OPTIONS) {
+        throw new Error(
+          `MCQ cards require at least ${MIN_MCQ_OPTIONS} options`
+        );
+      }
+      if (
+        correctOptionIndex === undefined ||
+        !Number.isInteger(correctOptionIndex) ||
+        correctOptionIndex < 0 ||
+        correctOptionIndex >= options.length
+      ) {
+        throw new Error(
+          "correctOptionIndex must be a valid index within the options array"
+        );
+      }
+      return;
+    }
+
+    case "code":
+      if (!input.language?.trim()) {
+        throw new Error("language is required for code cards");
+      }
+      return;
+
+    case "image":
+      for (const file of [input.questionFile, input.answerFile]) {
+        if (file) {
+          await assertValidStoredImage(ctx, file);
+        }
+      }
+      return;
+
+    default:
+      throw new Error(
+        `Card type ${input.cardType satisfies never} not supported`
+      );
+  }
+}
+
+async function findDeckIdByName(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+  deckName: string | undefined
+) {
+  if (!deckName) {
+    return;
+  }
+  const deck = await ctx.db
+    .query("decks")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .filter((q) => q.eq(q.field("deckName"), deckName))
+    .unique();
+  return deck?._id;
+}
+
+/**
+ * Validates and inserts a new card for `userId`, resolving its deck by name
+ * and giving it the initial scheduling state (due immediately).
+ */
+async function insertCard(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+  input: CardInput
+) {
+  await validateCardInput(ctx, input);
+  const { deck, ...fields } = input;
+
+  return await ctx.db.insert("cards", {
+    ...fields,
+    userId,
+    deckId: await findDeckIdByName(ctx, userId, deck),
+    ...INITIAL_SCHEDULING_STATE,
+    nextReviewDate: Date.now(),
+  });
+}
+
+export const createCard = mutation({
+  args: {
+    ...cardInputValidator.fields,
+    // Optional for older clients; cards without a type are plain text.
+    cardType: v.optional(cardTypeValidator),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getCurrentUserId(ctx);
+    return await insertCard(ctx, userId, {
+      ...args,
+      cardType: args.cardType ?? "text",
+    });
+  },
+});
+
+/** API-key (MCP) entry point for text cards, or MCQ cards when options are given. */
+export const createQuestionCard = mutation({
+  args: {
+    apiKey: v.string(),
+    question: v.string(),
+    answer: v.string(),
+    deck: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    options: v.optional(v.array(v.string())),
+    correctOptionIndex: v.optional(v.number()),
+  },
+  handler: async (ctx, { apiKey, ...input }) => {
+    const userId = await getUserByApiKey(ctx, apiKey);
+    const isMcq =
+      input.options !== undefined || input.correctOptionIndex !== undefined;
+    return await insertCard(ctx, userId, {
+      ...input,
+      cardType: isMcq ? "mcq" : "text",
+    });
+  },
+});
+
+/** API-key (MCP) entry point for code cards. */
+export const createCodeCard = mutation({
+  args: {
+    apiKey: v.string(),
+    question: v.string(),
+    answer: v.string(),
+    language: v.string(),
+    questionCode: v.string(),
+    answerCode: v.optional(v.string()),
+    deck: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, { apiKey, ...input }) => {
+    const userId = await getUserByApiKey(ctx, apiKey);
+    return await insertCard(ctx, userId, { ...input, cardType: "code" });
+  },
+});
+
+// ============================================
+// Card lookup and ownership
+// ============================================
+
+/** Loads a card and throws unless it belongs to the logged-in user. */
+async function getOwnedCard(ctx: QueryCtx | MutationCtx, cardId: Id<"cards">) {
+  const userId = await getCurrentUserId(ctx);
+  const card = await ctx.db.get(cardId);
+  if (!card) {
+    throw new Error("Card not found");
+  }
+  if (card.userId !== userId) {
+    throw new Error("Not authorized to access this card");
+  }
+  return card;
+}
+
+/** Deletes a card together with any images it references in storage. */
+export async function deleteCardAndFiles(ctx: MutationCtx, card: Doc<"cards">) {
+  // Skip files that are already gone (or shared by both sides) so one stale
+  // reference can't make the card, or its whole deck, undeletable.
+  const files = new Set([card.questionFile, card.answerFile]);
+  for (const file of files) {
+    if (file && (await ctx.db.system.get(file))) {
+      await ctx.storage.delete(file);
+    }
+  }
+  await ctx.db.delete(card._id);
+}
 
 export const get = query({
   handler: async (ctx) => {
@@ -43,220 +254,50 @@ export const get = query({
   },
 });
 
-export const createCard = mutation({
-  args: {
-    cardType: v.optional(
-      v.union(
-        v.literal("text"),
-        v.literal("code"),
-        v.literal("image"),
-        v.literal("mcq")
-      )
-    ),
-
-    question: v.string(),
-    questionCode: v.optional(v.string()),
-    questionFile: v.optional(v.id("_storage")),
-
-    answer: v.string(),
-    answerCode: v.optional(v.string()),
-    answerFile: v.optional(v.id("_storage")),
-
-    options: v.optional(v.array(v.string())),
-    correctOptionIndex: v.optional(v.number()),
-
-    language: v.optional(v.string()),
-    deck: v.optional(v.string()),
-    tags: v.optional(v.array(v.string())),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getCurrentUserId(ctx);
-
-    let deckId: Id<"decks"> | undefined;
-    if (args.deck) {
-      const deck = await ctx.db
-        .query("decks")
-        .withIndex("by_user", (q) => q.eq("userId", userId))
-        .filter((q) => q.eq(q.field("deckName"), args.deck))
-        .unique();
-      deckId = deck?._id;
-    }
-
-    if (args.cardType === "mcq") {
-      if (!args.options || args.options.length < 2) {
-        throw new Error("MCQ cards require at least 2 options");
-      }
-      if (
-        args.correctOptionIndex === undefined ||
-        args.correctOptionIndex < 0 ||
-        args.correctOptionIndex >= args.options.length
-      ) {
-        throw new Error(
-          "correctOptionIndex must be a valid index within the options array"
-        );
-      }
-    }
-
-    const newCard = await ctx.db.insert("cards", {
-      userId,
-      deckId,
-      cardType: args.cardType,
-
-      question: args.question,
-      questionCode: args.questionCode,
-      questionFile: args.questionFile,
-
-      answer: args.answer,
-      answerCode: args.answerCode,
-      answerFile: args.answerFile,
-
-      options: args.options,
-      correctOptionIndex: args.correctOptionIndex,
-
-      language: args.language,
-      tags: args.tags,
-      nextReviewDate: Date.now(),
-      easeFactor: INITIAL_EASE_FACTOR,
-      intervalDays: 0,
-      repetitions: 0,
-    });
-
-    return newCard;
-  },
-});
-
-export const createQuestionCard = mutation({
-  args: {
-    apiKey: v.string(),
-    question: v.string(),
-    answer: v.string(),
-    deck: v.optional(v.string()),
-    tags: v.optional(v.array(v.string())),
-    options: v.optional(v.array(v.string())),
-    correctOptionIndex: v.optional(v.number()),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getUserByApiKey(ctx, args.apiKey);
-
-    const isMcq =
-      args.options !== undefined && args.correctOptionIndex !== undefined;
-
-    const newCard = await ctx.db.insert("cards", {
-      userId,
-      cardType: isMcq ? "mcq" : "text",
-      question: args.question,
-      answer: args.answer,
-      options: args.options,
-      correctOptionIndex: args.correctOptionIndex,
-      nextReviewDate: Date.now(),
-      easeFactor: INITIAL_EASE_FACTOR,
-      intervalDays: 0,
-      repetitions: 0,
-    });
-
-    return newCard;
-  },
-});
-
-export const createCodeCard = mutation({
-  args: {
-    apiKey: v.string(),
-    question: v.string(),
-    answer: v.string(),
-    language: v.string(),
-    questionCode: v.string(),
-    answerCode: v.optional(v.string()),
-    deck: v.optional(v.string()),
-    tags: v.optional(v.array(v.string())),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getUserByApiKey(ctx, args.apiKey);
-
-    if (args.language.trim().length === 0) {
-      throw new Error("language is required for code cards");
-    }
-    if (args.questionCode.trim().length === 0) {
-      throw new Error("questionCode is required for code cards");
-    }
-
-    let deckId: Id<"decks"> | undefined;
-    if (args.deck) {
-      const deck = await ctx.db
-        .query("decks")
-        .withIndex("by_user", (q) => q.eq("userId", userId))
-        .filter((q) => q.eq(q.field("deckName"), args.deck))
-        .unique();
-
-      // Deck is optional: if the provided name doesn't match an existing deck,
-      // we create the card without a deck assignment.
-      deckId = deck?._id;
-    }
-
-    const newCard = await ctx.db.insert("cards", {
-      userId,
-      deckId,
-      cardType: "code",
-      question: args.question,
-      questionCode: args.questionCode,
-      answer: args.answer,
-      answerCode: args.answerCode,
-      language: args.language,
-      tags: args.tags,
-      nextReviewDate: Date.now(),
-      easeFactor: INITIAL_EASE_FACTOR,
-      intervalDays: 0,
-      repetitions: 0,
-    });
-
-    return newCard;
-  },
-});
-
+/**
+ * Cards due at or before `now`. The client passes `now` (rounded to the
+ * minute) because Convex does not re-run a query as time passes, so a
+ * `Date.now()` here would go stale.
+ */
 export const getDueToday = query({
-  handler: async (ctx) => {
-    const userId = await getCurrentUserId(ctx);
-    const today = Date.now();
-    return await ctx.db
-      .query("cards")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .filter((q) => q.lte(q.field("nextReviewDate"), today))
-      .collect();
-  },
-});
-
-export const getByDeckId = query({
   args: {
-    deckId: v.id("decks"),
+    now: v.number(),
   },
   handler: async (ctx, args) => {
     const userId = await getCurrentUserId(ctx);
-
     return await ctx.db
       .query("cards")
-      .withIndex("by_user_deck", (q) =>
-        q.eq("userId", userId).eq("deckId", args.deckId)
+      .withIndex("by_user_due_date", (q) =>
+        q.eq("userId", userId).lte("nextReviewDate", args.now)
       )
       .collect();
   },
 });
+
+/** URL of the image on one side of a card the caller owns, or null if none. */
+export const getImageUrl = query({
+  args: {
+    cardId: v.id("cards"),
+    side: cardSideValidator,
+  },
+  handler: async (ctx, args): Promise<string | null> => {
+    const card = await getOwnedCard(ctx, args.cardId);
+    const file = args.side === "question" ? card.questionFile : card.answerFile;
+    return file ? await ctx.storage.getUrl(file) : null;
+  },
+});
+
+// ============================================
+// Card updates
+// ============================================
 
 export const deleteCard = mutation({
   args: {
     cardId: v.id("cards"),
   },
   handler: async (ctx, args) => {
-    const userId = await getCurrentUserId(ctx);
-
-    const card = await ctx.db.get(args.cardId);
-    if (!card) {
-      throw new Error("Card not found");
-    }
-
-    if (card.userId !== userId) {
-      throw new Error("Not authorized to delete this card");
-    }
-
-    await ctx.db.delete(args.cardId);
+    const card = await getOwnedCard(ctx, args.cardId);
+    await deleteCardAndFiles(ctx, card);
   },
 });
 
@@ -266,16 +307,7 @@ export const moveCardToDeck = mutation({
     deckId: v.optional(v.id("decks")),
   },
   handler: async (ctx, args) => {
-    const userId = await getCurrentUserId(ctx);
-
-    const card = await ctx.db.get(args.cardId);
-    if (!card) {
-      throw new Error("Card not found");
-    }
-
-    if (card.userId !== userId) {
-      throw new Error("Not authorized to modify this card");
-    }
+    const card = await getOwnedCard(ctx, args.cardId);
 
     if (args.deckId) {
       const deck = await ctx.db.get(args.deckId);
@@ -283,7 +315,7 @@ export const moveCardToDeck = mutation({
         throw new Error("Deck not found");
       }
 
-      if (deck.userId !== userId) {
+      if (deck.userId !== card.userId) {
         throw new Error("Not authorized to move card to this deck");
       }
     }
@@ -299,89 +331,17 @@ export const moveCardToDeck = mutation({
 export const updateNextReviewDate = mutation({
   args: {
     cardId: v.id("cards"),
-    difficulty: v.string(),
+    difficulty: difficultyValidator,
   },
   handler: async (ctx, args) => {
-    const userId = await getCurrentUserId(ctx);
-
-    const card = await ctx.db.get(args.cardId);
-    if (!card) {
-      throw new Error("Card not found");
-    }
-
-    if (card.userId !== userId) {
-      throw new Error("Not authorized to update this card");
-    }
-
-    let { easeFactor, intervalDays, repetitions } = card;
+    const card = await getOwnedCard(ctx, args.cardId);
     const now = Date.now();
 
-    switch (args.difficulty) {
-      case "again":
-        easeFactor = Math.max(MIN_EASE_FACTOR, easeFactor - AGAIN_EASE_PENALTY);
-        repetitions = 0;
-        intervalDays = AGAIN_INTERVAL;
-        break;
-
-      case "hard":
-        easeFactor = Math.max(MIN_EASE_FACTOR, easeFactor - HARD_EASE_PENALTY);
-        if (repetitions === 0) {
-          intervalDays = HARD_LEARNING_STEP_1;
-        } else if (repetitions === 1) {
-          intervalDays = HARD_LEARNING_STEP_2;
-        } else {
-          intervalDays = Math.max(
-            intervalDays * HARD_INTERVAL_MULTIPLIER,
-            intervalDays + 1
-          );
-        }
-        repetitions += 1;
-        break;
-
-      case "medium":
-        if (repetitions === 0) {
-          intervalDays = LEARNING_STEP_1;
-        } else if (repetitions === 1) {
-          intervalDays = LEARNING_STEP_2;
-        } else {
-          intervalDays *= easeFactor;
-        }
-        repetitions += 1;
-        break;
-
-      case "easy":
-        easeFactor += EASY_EASE_BONUS;
-        if (repetitions === 0) {
-          intervalDays = EASY_LEARNING_STEP_1;
-        } else if (repetitions === 1) {
-          intervalDays = EASY_LEARNING_STEP_2;
-        } else {
-          intervalDays *= easeFactor * EASY_INTERVAL_BONUS;
-        }
-        repetitions += 1;
-        break;
-
-      default:
-        throw new Error("Invalid difficulty");
-    }
-
-    const nextReviewDate = now + intervalDays * MS_PER_DAY;
-
     await ctx.db.patch(args.cardId, {
-      easeFactor,
-      intervalDays,
-      repetitions,
-      nextReviewDate,
+      ...schedule(card, args.difficulty, now),
       lastReviewedAt: now,
     });
   },
-});
-
-export const getImageUrl = query({
-  args: {
-    imageStorageId: v.id("_storage"),
-  },
-  handler: async (ctx, args) => await ctx.storage.getUrl(args.imageStorageId),
 });
 
 export const generateUploadUrl = mutation({
@@ -392,16 +352,14 @@ export const generateUploadUrl = mutation({
   handler: async (ctx, args) => {
     await getCurrentUserId(ctx);
 
-    if (args.fileSize > MAX_FILE_SIZE) {
-      throw new Error(
-        `File too large. Maximum size is ${MAX_FILE_SIZE / MEGABYTE}MB`
-      );
-    }
-
-    if (!ALLOWED_IMAGE_TYPES.includes(args.fileType)) {
-      throw new Error(
-        `File type not allowed. Accepted types: ${ALLOWED_IMAGE_TYPES.join(", ")}`
-      );
+    // Early rejection based on what the client declares; the stored file is
+    // re-checked in `insertCard` since these values can't be trusted.
+    const result = validateImageFile({
+      size: args.fileSize,
+      type: args.fileType,
+    });
+    if (!result.valid) {
+      throw new Error(result.error);
     }
 
     return await ctx.storage.generateUploadUrl();

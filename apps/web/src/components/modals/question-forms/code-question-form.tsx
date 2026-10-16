@@ -110,7 +110,7 @@ export function CodeQuestionForm({
                     maxHeight: "96px",
                     overflow: "auto",
                   }}
-                  language={formData.language || "javascript"}
+                  language={formData.language}
                   style={atomOneLight}
                 >
                   {getCodePreview(formData.questionCode)?.preview}
@@ -162,7 +162,7 @@ export function CodeQuestionForm({
                     maxHeight: "96px",
                     overflow: "auto",
                   }}
-                  language={formData.language || "javascript"}
+                  language={formData.language}
                   style={atomOneLight}
                 >
                   {getCodePreview(formData.answerCode)?.preview}
