@@ -1,11 +1,8 @@
-import {
-  type Card as CardType,
-  type CardType as CardTypeEnum,
-  resolveCardType,
-} from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
-import { Code, FileText, ListChecks, Trash2 } from "lucide-react";
+import type { Card as CardType } from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
+import { Trash2 } from "lucide-react";
 import { lazy, Suspense } from "react";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { CardTypeIcon } from "@/components/dashboard/card-type-icon";
 import { Button } from "@/components/ui/button";
 
 const SyntaxHighlighter = lazy(() =>
@@ -13,23 +10,6 @@ const SyntaxHighlighter = lazy(() =>
     default: mod.Prism,
   }))
 );
-
-function CardTypeIcon({ cardType }: { cardType: CardTypeEnum }) {
-  switch (cardType) {
-    case "code":
-      return <Code className="h-4 w-4 text-blue-500" />;
-    case "image":
-      return <FileText className="h-4 w-4 text-purple-500" />;
-    case "mcq":
-      return <ListChecks className="h-4 w-4 text-emerald-500" />;
-    case "text":
-      return <FileText className="h-4 w-4 text-gray-500" />;
-    default: {
-      const _exhaustive: never = cardType;
-      throw new Error(`Unknown card type: ${_exhaustive}`);
-    }
-  }
-}
 
 type CardProps = {
   card: CardType;
@@ -41,7 +21,7 @@ export function Card({ card, onDeleteCard }: CardProps) {
     <div className="flex items-start justify-between rounded-md border p-3">
       <div className="flex-1 space-y-1">
         <div className="flex items-center gap-2">
-          <CardTypeIcon cardType={resolveCardType(card)} />
+          <CardTypeIcon card={card} />
           <span className="font-medium">{card.question}</span>
           {card.language && (
             <span className="rounded bg-blue-100 px-2 py-1 text-blue-800 text-xs">

@@ -11,16 +11,12 @@ import {
 import { Label } from "@/components/ui/label";
 
 type CodeEditorModalProps = {
-  isOpen: { codeBlockFor: "question" | "answer" } | null;
+  isOpen: boolean;
+  /** The snippet and language the editor starts with each time it opens. */
+  code: string;
   language: string;
-  questionCode: string;
-  answerCode: string;
   onClose: () => void;
-  onSave: (
-    language: string,
-    code: string,
-    codeBlockFor: "question" | "answer"
-  ) => void;
+  onSave: (language: string, code: string) => void;
 };
 
 const languages = [
@@ -39,59 +35,26 @@ const languages = [
 
 const Editor = lazy(() => import("@monaco-editor/react"));
 
-export function CodeEditorModal({
-  isOpen,
-  onClose,
-  onSave,
-  questionCode,
-  answerCode,
-  language,
-}: CodeEditorModalProps) {
+export function CodeEditorModal({ isOpen, ...props }: CodeEditorModalProps) {
   return (
-    <Dialog onOpenChange={onClose} open={isOpen !== null}>
-      {isOpen && (
-        <CodeEditorModalContent
-          answerCode={answerCode}
-          codeBlockFor={isOpen.codeBlockFor}
-          language={language}
-          onClose={onClose}
-          onSave={onSave}
-          questionCode={questionCode}
-        />
-      )}
+    <Dialog onOpenChange={props.onClose} open={isOpen}>
+      {isOpen && <CodeEditorModalContent {...props} />}
     </Dialog>
   );
 }
 
+// Mounted only while open, so the draft restarts from the saved code each time.
 function CodeEditorModalContent({
-  codeBlockFor,
+  code: initialCode,
+  language,
   onClose,
   onSave,
-  questionCode,
-  answerCode,
-  language,
-}: {
-  codeBlockFor: "question" | "answer";
-  language: string;
-  questionCode: string;
-  answerCode: string;
-  onClose: () => void;
-  onSave: (
-    language: string,
-    code: string,
-    codeBlockFor: "question" | "answer"
-  ) => void;
-}) {
-  const initialCode = codeBlockFor === "question" ? questionCode : answerCode;
+}: Omit<CodeEditorModalProps, "isOpen">) {
   const [currentLanguage, setLanguage] = useState(language);
   const [code, setCode] = useState(initialCode);
 
   const handleSave = () => {
-    onSave(currentLanguage, code, codeBlockFor);
-    onClose();
-  };
-
-  const handleCancel = () => {
+    onSave(currentLanguage, code);
     onClose();
   };
 
@@ -104,9 +67,9 @@ function CodeEditorModalContent({
         <div className="grid gap-2">
           <Label htmlFor="language">Language</Label>
           <Combobox
-            currentLanguage={language}
             items={languages}
             onSelect={setLanguage}
+            value={currentLanguage}
           />
         </div>
         <div className="grid gap-2">
@@ -136,7 +99,7 @@ function CodeEditorModalContent({
         </div>
       </div>
       <DialogFooter>
-        <Button onClick={handleCancel} variant="neutral">
+        <Button onClick={onClose} variant="neutral">
           Cancel
         </Button>
         <Button onClick={handleSave}>Save</Button>

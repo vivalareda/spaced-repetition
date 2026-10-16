@@ -1,16 +1,24 @@
 import {
-  isImageFormData,
-  isMcqFormData,
-  MINIMUM_DEBOUNCE_TIME,
-  QUESTION_TYPES,
+  CARD_TYPES,
+  type CardType,
+  type CodeFormData,
+  changeCardType,
+  emptyCardForm,
+  type FormDataType,
+  type ImageFormData,
+  type McqFormData,
+  patchCardForm,
+  type TextFormData,
+  toCardInput,
 } from "@shared/types";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
 import type { Id } from "@spaced-repetition-monorepo/backend/convex/_generated/dataModel";
 import { useNavigate } from "@tanstack/react-router";
-import { useMutation, useQuery } from "convex/react";
-import { useEffect, useRef, useState } from "react";
+import { useMutation } from "convex/react";
+import { type Dispatch, type SetStateAction, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CodeQuestionForm } from "@/components/modals/question-forms/code-question-form";
+import { DeckSelect } from "@/components/modals/question-forms/deck-select";
 import { ImageQuestionForm } from "@/components/modals/question-forms/image-question-form";
 import { McqQuestionForm } from "@/components/modals/question-forms/mcq-question-form";
 import { TextQuestionForm } from "@/components/modals/question-forms/text-question-form";
@@ -23,186 +31,78 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useCardForm } from "@/hooks/use-card-form";
 import { useModalStore } from "@/hooks/use-modal-store";
+import { useUserSynced } from "@/hooks/use-user-data";
 
 export function CreateCardModal() {
+  const { type, questionType, onSubmit, onClose } = useModalStore();
+
+  // Mounted only while open, so every opening starts from a blank form.
+  if (type !== "create-card") {
+    return null;
+  }
+  return (
+    <CreateCardDialog
+      initialType={questionType ?? "text"}
+      onClose={onClose}
+      onSubmit={onSubmit}
+    />
+  );
+}
+
+type CreateCardDialogProps = {
+  initialType: CardType;
+  onClose: () => void;
+  /** Runs after the card is created; without it the app goes home. */
+  onSubmit?: () => unknown;
+};
+
+function CreateCardDialog({
+  initialType,
+  onClose,
+  onSubmit,
+}: CreateCardDialogProps) {
   const { t } = useTranslation();
-  const { onSubmit, onClose, type, questionType } = useModalStore();
   const navigate = useNavigate();
-  const [shouldFetchDecks, setShouldFetchDecks] = useState(false);
+  const createCard = useMutation(api.cards.createCard);
+  // The backend rejects cards until the user's record exists.
+  const isUserSynced = useUserSynced();
+  const [form, setForm] = useState(() => emptyCardForm(initialType));
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { formData, dispatch, handlers } = useCardForm();
-
-  const isModalOpen = type === "create-card";
-  const createCard = useMutation(api.cards.createCard);
-  const currentUser = useQuery(api.users.current, isModalOpen ? {} : "skip");
-
-  const shouldQuery = isModalOpen && shouldFetchDecks;
-  const userDecks = useQuery(
-    api.decks.getUserDecksNames,
-    shouldQuery ? {} : "skip"
-  );
-
-  useEffect(() => {
-    if (isModalOpen) {
-      const timer = setTimeout(() => {
-        setShouldFetchDecks(true);
-      }, MINIMUM_DEBOUNCE_TIME);
-
-      return () => clearTimeout(timer);
-    }
-    setShouldFetchDecks(false);
-  }, [isModalOpen]);
-
-  const appliedQuestionTypeRef = useRef(false);
-  if (isModalOpen && questionType && !appliedQuestionTypeRef.current) {
-    appliedQuestionTypeRef.current = true;
-    handlers.questionTypeChange(questionType);
-  }
-  if (!isModalOpen) {
-    appliedQuestionTypeRef.current = false;
-  }
-
-  const currentQuestionType = formData.type;
-  const canSubmit =
-    !isSubmitting && currentUser !== null && currentUser !== undefined;
-
-  const getCreateCardArgs = () => {
-    const base = {
-      question: formData.question,
-      answer: formData.answer,
-      deck: formData.deck,
-      tags: formData.tags,
-    };
-
-    if (isImageFormData(formData)) {
-      return {
-        ...base,
-        cardType: "image" as const,
-        questionFile: (formData.questionFile || undefined) as Id<"_storage">,
-        answerFile: (formData.answerFile || undefined) as Id<"_storage">,
-      };
-    }
-
-    if (isMcqFormData(formData)) {
-      return {
-        ...base,
-        cardType: "mcq" as const,
-        options: formData.options,
-        correctOptionIndex: formData.correctOptionIndex,
-        answer:
-          formData.answer ||
-          formData.options.at(formData.correctOptionIndex) ||
-          "",
-      };
-    }
-
-    if (formData.type === "code") {
-      return {
-        ...base,
-        cardType: "code" as const,
-        language: formData.language,
-        questionCode: formData.questionCode,
-        answerCode: formData.answerCode,
-      };
-    }
-
-    return {
-      ...base,
-      cardType: "text" as const,
-    };
-  };
 
   const handleSubmit = async () => {
-    if (!canSubmit) {
-      setSubmitError("Please wait for your account to finish syncing.");
-      return;
-    }
-
     setSubmitError(null);
     setIsSubmitting(true);
-
     try {
-      await createCard(getCreateCardArgs());
-
+      const input = toCardInput(form);
+      // Image ids are kept as plain strings in the form; they come from the
+      // storage upload endpoint, so they are real storage ids.
+      await createCard(
+        input as typeof input & {
+          questionFile?: Id<"_storage">;
+          answerFile?: Id<"_storage">;
+        }
+      );
       if (onSubmit) {
         await onSubmit();
       } else {
         navigate({ to: "/" });
       }
-      closeModal();
+      onClose();
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : "Failed to create card"
       );
-    } finally {
       setIsSubmitting(false);
     }
   };
 
-  const closeModal = () => {
-    setSubmitError(null);
-    setIsSubmitting(false);
-    onClose();
-    dispatch({ type: "RESET" });
-  };
-
-  const questionForm = (() => {
-    switch (formData.type) {
-      case "code":
-        return (
-          <CodeQuestionForm
-            formData={formData}
-            onAnswerCodeChange={handlers.answerCodeChange}
-            onDeckSelect={handlers.deckSelect}
-            onFieldChange={handlers.fieldChange}
-            onLanguageChange={handlers.languageChange}
-            onQuestionCodeChange={handlers.questionCodeChange}
-            userDecks={userDecks}
-          />
-        );
-      case "image":
-        return (
-          <ImageQuestionForm
-            formData={formData}
-            onDeckSelect={handlers.deckSelect}
-            onFieldChange={handlers.fieldChange}
-            onFileUploadSave={handlers.fileUploadSave}
-            userDecks={userDecks}
-          />
-        );
-      case "text":
-        return (
-          <TextQuestionForm
-            formData={formData}
-            onDeckSelect={handlers.deckSelect}
-            onFieldChange={handlers.fieldChange}
-            userDecks={userDecks}
-          />
-        );
-      case "mcq":
-        return (
-          <McqQuestionForm
-            formData={formData}
-            onCorrectOptionChange={handlers.correctOptionChange}
-            onDeckSelect={handlers.deckSelect}
-            onFieldChange={handlers.fieldChange}
-            onOptionsChange={handlers.optionsChange}
-            userDecks={userDecks}
-          />
-        );
-      default:
-        throw new Error(`Invalid type, ${formData satisfies never}`);
-    }
-  })();
-
   return (
-    <Dialog onOpenChange={closeModal} open={isModalOpen}>
+    <Dialog onOpenChange={onClose} open>
       <DialogContent
         className={`max-h-[85vh] overflow-y-auto ${
-          currentQuestionType === "code"
+          form.type === "code"
             ? "max-w-4xl sm:max-w-2xl"
             : "max-w-2xl sm:max-w-xl"
         }`}
@@ -216,37 +116,88 @@ export function CreateCardModal() {
 
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-2">
-            {QUESTION_TYPES.map((qt) => (
+            {CARD_TYPES.map((cardType) => (
               <Button
-                key={qt}
-                onClick={() => handlers.questionTypeChange(qt)}
+                key={cardType}
+                onClick={() =>
+                  setForm((current) => changeCardType(current, cardType))
+                }
                 size="sm"
                 type="button"
-                variant={currentQuestionType === qt ? "noShadow" : "neutral"}
+                variant={form.type === cardType ? "noShadow" : "neutral"}
               >
-                {t(`modals.createCard.${qt}Question`)}
+                {t(`modals.createCard.${cardType}Question`)}
               </Button>
             ))}
           </div>
-          {questionForm}
+          <div className="grid gap-4">
+            <CardTypeFields form={form} setForm={setForm} />
+            <DeckSelect
+              onSelect={(deck) => setForm((current) => ({ ...current, deck }))}
+            />
+          </div>
           {submitError ? (
             <div className="text-red-600 text-sm">{submitError}</div>
           ) : null}
         </div>
 
         <DialogFooter>
-          <Button
-            disabled={isSubmitting}
-            onClick={closeModal}
-            variant="neutral"
-          >
+          <Button disabled={isSubmitting} onClick={onClose} variant="neutral">
             {t("modals.createCard.cancel")}
           </Button>
-          <Button disabled={!canSubmit} onClick={handleSubmit}>
+          <Button
+            disabled={isSubmitting || !isUserSynced}
+            onClick={handleSubmit}
+          >
             {t("modals.createCard.create")}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
+}
+
+/** The inputs specific to the form's card type, plus question and answer. */
+function CardTypeFields({
+  form,
+  setForm,
+}: {
+  form: FormDataType;
+  setForm: Dispatch<SetStateAction<FormDataType>>;
+}) {
+  // Patches apply to the latest form state, since some (uploads) land late.
+  const patcher =
+    <Form extends FormDataType>(type: Form["type"]) =>
+    (patch: Partial<Omit<Form, "type">>) =>
+      setForm((current) => patchCardForm<Form>(current, type, patch));
+
+  switch (form.type) {
+    case "text":
+      return (
+        <TextQuestionForm
+          form={form}
+          onChange={patcher<TextFormData>("text")}
+        />
+      );
+    case "code":
+      return (
+        <CodeQuestionForm
+          form={form}
+          onChange={patcher<CodeFormData>("code")}
+        />
+      );
+    case "image":
+      return (
+        <ImageQuestionForm
+          form={form}
+          onChange={patcher<ImageFormData>("image")}
+        />
+      );
+    case "mcq":
+      return (
+        <McqQuestionForm form={form} onChange={patcher<McqFormData>("mcq")} />
+      );
+    default:
+      throw new Error(`Unknown card type: ${form satisfies never}`);
+  }
 }

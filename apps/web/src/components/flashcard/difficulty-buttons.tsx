@@ -22,17 +22,15 @@ const formatDaysText = (days: number) => `${days}d`;
 
 type DifficultyButtonsProps = {
   card: Card;
+  /** The rating being saved, or null to show the rating buttons. */
   difficulty: Difficulty | null;
-  onDifficultyClick: (
-    cardId: Card["_id"],
-    questionDifficulty: Difficulty
-  ) => void;
+  onRate: (rating: Difficulty) => void;
 };
 
 export function DifficultyButtons({
   card,
   difficulty,
-  onDifficultyClick,
+  onRate,
 }: DifficultyButtonsProps) {
   const { t } = useTranslation();
 
@@ -55,7 +53,7 @@ export function DifficultyButtons({
         <Button
           className={`fade-in slide-in-from-bottom-10 col-span-1 w-34 animate-in duration-500 ${BUTTON_COLORS[rating]}`}
           key={rating}
-          onClick={() => onDifficultyClick(card._id, rating)}
+          onClick={() => onRate(rating)}
           variant="default"
         >
           {t(`flashcards.difficulty.${rating}`)} (

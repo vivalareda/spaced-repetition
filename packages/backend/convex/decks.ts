@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { deleteCardAndFiles } from "./cards";
-import { getCurrentUserId } from "./users";
+import { getCurrentUserId, getOwnedDoc } from "./users";
 
 export const createDeck = mutation({
   args: {
@@ -38,17 +38,7 @@ export const deleteDeck = mutation({
     deckId: v.id("decks"),
   },
   handler: async (ctx, args) => {
-    const userId = await getCurrentUserId(ctx);
-
-    const deck = await ctx.db.get(args.deckId);
-    if (!deck) {
-      throw new Error("Deck not found");
-    }
-
-    if (deck.userId !== userId) {
-      throw new Error("Not authorized to delete this deck");
-    }
-
+    const { userId } = await getOwnedDoc(ctx, args.deckId);
     const cardsInDeck = await ctx.db
       .query("cards")
       .withIndex("by_user_deck", (q) =>
@@ -76,6 +66,8 @@ export const getUserDecks = query({
   },
 });
 
+// No current caller; kept so clients built before it was replaced by
+// `getUserDecks` keep working until they reload.
 export const getUserDecksNames = query({
   handler: async (ctx) => {
     const userId = await getCurrentUserId(ctx);

@@ -1,5 +1,5 @@
 import { validateImageFile } from "@shared/types";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,69 +12,58 @@ import {
 import { Label } from "@/components/ui/label";
 
 type FileUploadModalProps = {
-  isOpen: { uploadFor: "question" | "answer" } | null;
   onClose: () => void;
-  onSave: (file: File, uploadFor: "question" | "answer") => void;
+  /** Uploads the picked image; a rejection is shown and keeps the modal open. */
+  onSave: (file: File) => Promise<void>;
 };
 
-export function FileUploadModal({
-  isOpen,
-  onClose,
-  onSave,
-}: FileUploadModalProps) {
+/**
+ * Picks an allowed image and uploads it, closing only once the upload
+ * succeeds. Render it only while open, so each opening starts fresh.
+ */
+export function FileUploadModal({ onClose, onSave }: FileUploadModalProps) {
   const { t } = useTranslation();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setSelectedFile(null);
-      setError(null);
-    }
-  }, [isOpen]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const validation = validateImageFile(file);
-      if (validation.valid) {
-        setError(null);
-        setSelectedFile(file);
-      } else {
-        setError(validation.error);
-        setSelectedFile(null);
-      }
-    }
-  };
-
-  const handleSave = () => {
-    if (!(isOpen && selectedFile)) {
+    if (!file) {
       return;
     }
-    onSave(selectedFile, isOpen.uploadFor);
-    handleClose();
+    const validation = validateImageFile(file);
+    setSelectedFile(validation.valid ? file : null);
+    setError(validation.valid ? null : validation.error);
   };
 
-  const handleCancel = () => {
-    handleClose();
-    onClose();
-  };
-
-  const handleClose = () => {
-    setSelectedFile(null);
-    setError(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      return;
     }
-  };
-
-  const handleBrowseClick = () => {
-    fileInputRef.current?.click();
+    setIsUploading(true);
+    setError(null);
+    try {
+      await onSave(selectedFile);
+      setIsUploading(false);
+      onClose();
+    } catch (uploadError) {
+      setIsUploading(false);
+      setError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : t("modals.createCard.uploadFailed")
+      );
+    }
   };
 
   return (
-    <Dialog onOpenChange={onClose} open={isOpen !== null}>
+    <Dialog
+      // An upload in flight can't be dismissed, so its result always lands.
+      onOpenChange={() => !isUploading && onClose()}
+      open
+    >
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{t("modals.fileUpload.title")}</DialogTitle>
@@ -91,7 +80,8 @@ export function FileUploadModal({
               type="file"
             />
             <Button
-              onClick={handleBrowseClick}
+              disabled={isUploading}
+              onClick={() => fileInputRef.current?.click()}
               size="sm"
               type="button"
               variant="neutral"
@@ -109,11 +99,16 @@ export function FileUploadModal({
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={handleCancel} variant="neutral">
+          <Button disabled={isUploading} onClick={onClose} variant="neutral">
             {t("modals.fileUpload.cancel")}
           </Button>
-          <Button disabled={!selectedFile || !!error} onClick={handleSave}>
-            {t("modals.fileUpload.upload")}
+          <Button
+            disabled={!selectedFile || isUploading}
+            onClick={handleUpload}
+          >
+            {isUploading
+              ? t("modals.fileUpload.uploading")
+              : t("modals.fileUpload.upload")}
           </Button>
         </DialogFooter>
       </DialogContent>
