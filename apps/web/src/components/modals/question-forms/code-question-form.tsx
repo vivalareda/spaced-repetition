@@ -1,207 +1,129 @@
 import type { CodeFormData } from "@shared/types";
-import { type ChangeEvent, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { atomOneLight } from "react-syntax-highlighter/dist/esm/styles/hljs";
-import { DropdownMenu } from "@/components/dropdown-menu";
 import { CodeEditorModal } from "@/components/modals/code-editor-modal";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+const PREVIEW_LINES = 3;
+
+type Side = "question" | "answer";
+
 type CodeQuestionFormProps = {
-  formData: CodeFormData;
-  userDecks: string[] | undefined;
-  onFieldChange: (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => void;
-  onDeckSelect: (deck: string) => void;
-  onLanguageChange: (language: string) => void;
-  onQuestionCodeChange: (code: string) => void;
-  onAnswerCodeChange: (code: string) => void;
+  form: CodeFormData;
+  onChange: (patch: Partial<CodeFormData>) => void;
 };
 
-export function CodeQuestionForm({
-  formData,
-  userDecks,
-  onFieldChange,
-  onDeckSelect,
-  onLanguageChange,
-  onQuestionCodeChange,
-  onAnswerCodeChange,
-}: CodeQuestionFormProps) {
+export function CodeQuestionForm({ form, onChange }: CodeQuestionFormProps) {
   const { t } = useTranslation();
-  const PREVIEW_LINES = 3;
+  const [editingSide, setEditingSide] = useState<Side | null>(null);
 
-  const [isCodeEditorOpen, setIsCodeEditorOpen] = useState<{
-    codeBlockFor: "question" | "answer";
-  } | null>(null);
-
-  const handleOpenCodeEditor = (codeBlockFor: "question" | "answer") => {
-    setIsCodeEditorOpen({ codeBlockFor });
-  };
-
-  const handleEditorClose = () => {
-    setIsCodeEditorOpen(null);
-  };
-
-  const handleCodeEditorSave = (
-    language: string,
-    code: string,
-    codeBlockFor: "question" | "answer"
-  ) => {
-    if (codeBlockFor === "question") {
-      onLanguageChange(language);
-      onQuestionCodeChange(code);
-    } else {
-      onLanguageChange(language);
-      onAnswerCodeChange(code);
-    }
-    setIsCodeEditorOpen(null);
-  };
-
-  const getCodePreview = (code: string) => {
-    if (!code) {
-      return { preview: "", truncated: false, totalLines: 0 };
-    }
-    const lines = code.split("\n");
-    const preview = lines.slice(0, PREVIEW_LINES).join("\n");
-    const truncated = lines.length > PREVIEW_LINES;
-    return { preview, truncated, totalLines: lines.length };
+  const saveCode = (language: string, code: string) => {
+    onChange(
+      editingSide === "question"
+        ? { language, questionCode: code }
+        : { language, answerCode: code }
+    );
   };
 
   return (
     <>
-      <div className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="question">
-            {t("modals.createCard.questionLabel")}
-          </Label>
-          <Textarea
-            className="min-h-12"
-            id="question"
-            onChange={onFieldChange}
-            required
-            rows={1}
-            value={formData.question}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-4">
-          <div className="grid gap-2">
-            <div className="flex flex-col gap-2">
-              <Label>{t("modals.createCard.questionCodeLabel")}</Label>
-              <Button
-                onClick={() => handleOpenCodeEditor("question")}
-                size="sm"
-                type="button"
-                variant="neutral"
-              >
-                {formData.questionCode ? "Edit Code" : "Add Code"}
-              </Button>
-            </div>
-            {formData.questionCode && (
-              <div className="max-h-24 overflow-y-auto rounded-md border">
-                <SyntaxHighlighter
-                  customStyle={{
-                    margin: 0,
-                    padding: "8px",
-                    fontSize: "12px",
-                    maxHeight: "96px",
-                    overflow: "auto",
-                  }}
-                  language={formData.language}
-                  style={atomOneLight}
-                >
-                  {getCodePreview(formData.questionCode)?.preview}
-                </SyntaxHighlighter>
-                {getCodePreview(formData.questionCode)?.truncated && (
-                  <p className="mt-1 px-2 pb-1 text-gray-400 text-xs">
-                    +
-                    {getCodePreview(formData.questionCode)?.totalLines -
-                      PREVIEW_LINES}{" "}
-                    more lines
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="answer">{t("modals.createCard.answerLabel")}</Label>
-            <Textarea
-              className="min-h-12"
-              id="answer"
-              onChange={onFieldChange}
-              required
-              value={formData.answer}
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <div className="grid gap-2">
-              <div className="flex flex-col gap-2">
-                <Label>{t("modals.createCard.answerCodeLabel")}</Label>
-                <Button
-                  onClick={() => handleOpenCodeEditor("answer")}
-                  size="sm"
-                  type="button"
-                  variant="neutral"
-                >
-                  {formData.answerCode ? "Edit Code" : "Add Code"}
-                </Button>
-              </div>
-            </div>
-            {formData.answerCode && (
-              <div className="max-h-24 overflow-y-auto rounded-md border">
-                <SyntaxHighlighter
-                  customStyle={{
-                    margin: 0,
-                    padding: "8px",
-                    fontSize: "12px",
-                    maxHeight: "96px",
-                    overflow: "auto",
-                  }}
-                  language={formData.language}
-                  style={atomOneLight}
-                >
-                  {getCodePreview(formData.answerCode)?.preview}
-                </SyntaxHighlighter>
-                {getCodePreview(formData.answerCode)?.truncated && (
-                  <p className="mt-1 px-2 pb-1 text-gray-400 text-xs">
-                    +
-                    {getCodePreview(formData.answerCode)?.totalLines -
-                      PREVIEW_LINES}{" "}
-                    more lines
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="grid gap-2">
-          <Label htmlFor="deck">{t("modals.createCard.deckLabel")}</Label>
-          <DropdownMenu
-            items={userDecks}
-            onSelect={onDeckSelect}
-            placeholder={
-              userDecks?.length === 0
-                ? t("modals.createCard.noDeckCreated")
-                : t("modals.createCard.selectDeck")
-            }
-          />
-        </div>
+      <div className="grid gap-2">
+        <Label htmlFor="question">{t("modals.createCard.questionLabel")}</Label>
+        <Textarea
+          className="min-h-12"
+          id="question"
+          onChange={(event) => onChange({ question: event.target.value })}
+          required
+          rows={1}
+          value={form.question}
+        />
       </div>
 
+      <CodeField
+        code={form.questionCode}
+        label={t("modals.createCard.questionCodeLabel")}
+        language={form.language}
+        onEdit={() => setEditingSide("question")}
+      />
+
+      <div className="grid gap-2">
+        <Label htmlFor="answer">{t("modals.createCard.answerLabel")}</Label>
+        <Textarea
+          className="min-h-12"
+          id="answer"
+          onChange={(event) => onChange({ answer: event.target.value })}
+          required
+          value={form.answer}
+        />
+      </div>
+
+      <CodeField
+        code={form.answerCode}
+        label={t("modals.createCard.answerCodeLabel")}
+        language={form.language}
+        onEdit={() => setEditingSide("answer")}
+      />
+
       <CodeEditorModal
-        answerCode={formData.answerCode || ""}
-        isOpen={isCodeEditorOpen}
-        language={formData.language}
-        onClose={handleEditorClose}
-        onSave={handleCodeEditorSave}
-        questionCode={formData.questionCode || ""}
+        code={editingSide === "answer" ? form.answerCode : form.questionCode}
+        isOpen={editingSide !== null}
+        language={form.language}
+        onClose={() => setEditingSide(null)}
+        onSave={saveCode}
       />
     </>
+  );
+}
+
+/** A code snippet's add/edit button and a preview of its first lines. */
+function CodeField({
+  label,
+  code,
+  language,
+  onEdit,
+}: {
+  label: string;
+  code: string;
+  language: string;
+  onEdit: () => void;
+}) {
+  const lines = code.split("\n");
+  const hiddenLineCount = lines.length - PREVIEW_LINES;
+
+  return (
+    <div className="grid gap-2">
+      <div className="flex flex-col gap-2">
+        <Label>{label}</Label>
+        <Button onClick={onEdit} size="sm" type="button" variant="neutral">
+          {code ? "Edit Code" : "Add Code"}
+        </Button>
+      </div>
+      {code && (
+        <div className="max-h-24 overflow-y-auto rounded-md border">
+          <SyntaxHighlighter
+            customStyle={{
+              margin: 0,
+              padding: "8px",
+              fontSize: "12px",
+              maxHeight: "96px",
+              overflow: "auto",
+            }}
+            language={language}
+            style={atomOneLight}
+          >
+            {lines.slice(0, PREVIEW_LINES).join("\n")}
+          </SyntaxHighlighter>
+          {hiddenLineCount > 0 && (
+            <p className="mt-1 px-2 pb-1 text-gray-400 text-xs">
+              +{hiddenLineCount} more lines
+            </p>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

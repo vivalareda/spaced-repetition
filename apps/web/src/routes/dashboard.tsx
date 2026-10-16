@@ -109,6 +109,7 @@ function RouteComponent() {
           {cardsWithoutDeck.length > 0 && (
             <CardsWithoutDeck
               cards={cardsWithoutDeck}
+              decks={userDecks}
               onDeleteCard={confirmDeleteCard}
             />
           )}
@@ -120,9 +121,11 @@ function RouteComponent() {
 
 function CardsWithoutDeck({
   cards,
+  decks,
   onDeleteCard,
 }: {
   cards: CardData[];
+  decks: DeckType[];
   onDeleteCard: (cardId: CardData["_id"]) => void;
 }) {
   const { t } = useTranslation();
@@ -142,6 +145,7 @@ function CardsWithoutDeck({
         {cards.map((card) => (
           <StandaloneCard
             card={card}
+            decks={decks}
             key={card._id}
             onDeleteCard={onDeleteCard}
           />

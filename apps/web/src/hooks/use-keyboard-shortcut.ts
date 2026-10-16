@@ -1,9 +1,9 @@
-import type { QUESTION_TYPES } from "@shared/types";
+import type { CardType } from "@shared/types";
 import { type Options, useHotkeys } from "react-hotkeys-hook";
 import { useModalStore } from "@/hooks/use-modal-store";
 
 /** Each key opens the create-card modal with that question type preselected. */
-const CREATE_CARD_HOTKEYS: Record<string, (typeof QUESTION_TYPES)[number]> = {
+const CREATE_CARD_HOTKEYS: Record<string, CardType> = {
   c: "code",
   i: "image",
   t: "text",

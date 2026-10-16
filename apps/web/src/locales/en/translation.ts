@@ -119,6 +119,7 @@ export default {
       selected: "Selected: {{fileName}}",
       cancel: "Cancel",
       upload: "Upload",
+      uploading: "Uploading...",
     },
   },
   flashcards: {

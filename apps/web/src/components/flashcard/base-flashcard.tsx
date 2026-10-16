@@ -1,16 +1,15 @@
 import type { Difficulty } from "@shared/types";
 import {
   type Card as CardType,
-  isCodeCard,
-  isImageCard,
-  isMcqCard,
+  resolveCardType,
 } from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
 import { useTranslation } from "react-i18next";
-import { AnswerFlashCard } from "@/components/flashcard/answer-flashcard";
+import { AnswerText } from "@/components/flashcard/answer-flashcard";
 import { CodeFlashCardContent } from "@/components/flashcard/code-flashcard-content";
 import { DifficultyButtons } from "@/components/flashcard/difficulty-buttons";
 import { ImageFlashCardContent } from "@/components/flashcard/image-flashcard-content";
 import { McqFlashCardContent } from "@/components/flashcard/mcq-flashcard-content";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -34,69 +33,31 @@ type FlashCardProps = {
   onRate: (difficulty: Difficulty) => void;
 };
 
-function FlashCardQuestion({ card }: { card: CardType }) {
-  const handleCopyCodeBlock = (codeBlock: string, language: string) => {
-    const formatedCodeBlock = `\`\`\`${language}\n${codeBlock}\n\`\`\``;
-    navigator.clipboard.writeText(formatedCodeBlock);
-  };
-
-  if (isCodeCard(card)) {
-    return (
-      <CodeFlashCardContent
-        codeBlock={card.questionCode}
-        handleCopyCodeBlock={handleCopyCodeBlock}
-        language={card.language}
-        showCopyCodeBlockTooltip={true}
-      />
-    );
-  }
-
-  if (isImageCard(card) && card.questionFile) {
-    return <ImageFlashCardContent cardId={card._id} side="question" />;
-  }
-
-  return null;
-}
-
-function FlashCardAnswer({
+/** The code or image attached to one side of a card, if any. */
+function CardMedia({
   card,
-  showAnswer,
+  side,
 }: {
   card: CardType;
-  showAnswer: boolean;
+  side: "question" | "answer";
 }) {
-  const handleCopyCodeBlock = (codeBlock: string, language: string) => {
-    const formatedCodeBlock = `\`\`\`${language}\n${codeBlock}\n\`\`\``;
-    navigator.clipboard.writeText(formatedCodeBlock);
-  };
+  const cardType = resolveCardType(card);
+  const code = side === "question" ? card.questionCode : card.answerCode;
+  const file = side === "question" ? card.questionFile : card.answerFile;
 
-  if (showAnswer && isCodeCard(card) && card.answerCode) {
+  if (cardType === "code" && code) {
     return (
       <CodeFlashCardContent
-        codeBlock={card.answerCode}
-        handleCopyCodeBlock={handleCopyCodeBlock}
+        codeBlock={code}
         language={card.language || "text"}
-        showCopyCodeBlockTooltip={true}
       />
     );
   }
-
-  if (showAnswer && isImageCard(card) && card.answerFile) {
-    return <ImageFlashCardContent cardId={card._id} side="answer" />;
+  if (cardType === "image" && file) {
+    return <ImageFlashCardContent cardId={card._id} side={side} />;
   }
-
   return null;
 }
-
-const getCorrectAnswerText = (correctAnswer: string) => {
-  const parts = correctAnswer.split(/(\*\*.*?\*\*)/g);
-  return parts.map((part) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={part}>{part.slice(2, -2)}</strong>;
-    }
-    return part;
-  });
-};
 
 export function FlashCard({
   card,
@@ -108,9 +69,7 @@ export function FlashCard({
   onRate,
 }: FlashCardProps) {
   const { t } = useTranslation();
-  const correctAnswer = card.answer;
-
-  const isMcq = isMcqCard(card);
+  const isMcq = resolveCardType(card) === "mcq";
 
   return (
     <>
@@ -133,6 +92,7 @@ export function FlashCard({
 
         <CardContent className="grid grid-cols-1 gap-[clamp(12px,2vw,20px)] pt-4 text-left sm:grid-cols-2">
           {isMcq ? (
+            // Picking an option is what reveals an MCQ card's answer.
             <McqFlashCardContent
               correctOptionIndex={card.correctOptionIndex ?? 0}
               onAnswerSelected={onReveal}
@@ -140,29 +100,22 @@ export function FlashCard({
             />
           ) : (
             <>
-              <FlashCardQuestion card={card} />
-              <FlashCardAnswer card={card} showAnswer={showAnswer} />
+              <CardMedia card={card} side="question" />
+              {showAnswer && <CardMedia card={card} side="answer" />}
             </>
           )}
         </CardContent>
 
-        {!isMcq && (
+        {showAnswer && card.answer && (
           <CardFooter className="flex justify-center pt-4">
-            <AnswerFlashCard
-              getCorrectAnswerText={() => getCorrectAnswerText(correctAnswer)}
-              onReveal={onReveal}
-              showAnswer={showAnswer}
-            />
+            <AnswerText answer={card.answer} />
           </CardFooter>
         )}
-
-        {isMcq && showAnswer && correctAnswer && (
+        {!(showAnswer || isMcq) && (
           <CardFooter className="flex justify-center pt-4">
-            <div className="fade-in slide-in-from-bottom-10 w-full max-w-2xl animate-in rounded-lg border-2 border-primary/20 bg-white/50 p-6 text-center duration-500">
-              <p className="text-lg leading-relaxed">
-                {getCorrectAnswerText(correctAnswer)}
-              </p>
-            </div>
+            <Button className="w-full max-w-md" onClick={onReveal}>
+              {t("flashcards.showAnswer")}
+            </Button>
           </CardFooter>
         )}
       </Card>
@@ -171,7 +124,7 @@ export function FlashCard({
         <DifficultyButtons
           card={card}
           difficulty={pendingRating}
-          onDifficultyClick={(_, difficulty) => onRate(difficulty)}
+          onRate={onRate}
         />
       )}
     </>

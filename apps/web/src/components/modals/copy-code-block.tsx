@@ -11,21 +11,20 @@ import {
 type CopyCodeBlockProps = {
   codeBlock: string;
   language: string;
-  handleCopyCodeBlock: (codeBlock: string, language: string) => void;
 };
 
 const IS_COPIED_DELAY = 1000;
 
+/** Copies the snippet as a fenced Markdown code block. */
 export function CopyCodeBlockTooltip({
   codeBlock,
   language,
-  handleCopyCodeBlock,
 }: CopyCodeBlockProps) {
   const { t } = useTranslation();
   const [isCopied, setIsCopied] = useState(false);
 
-  const handleCopyCodeClick = (code: string, lang: string) => {
-    handleCopyCodeBlock(code, lang);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(`\`\`\`${language}\n${codeBlock}\n\`\`\``);
     setIsCopied(true);
     setTimeout(() => {
       setIsCopied(false);
@@ -43,7 +42,7 @@ export function CopyCodeBlockTooltip({
           <button
             aria-label="Copy flashcard content"
             className="absolute right-12 bottom-2 text-muted-foreground transition hover:text-foreground"
-            onClick={() => handleCopyCodeClick(codeBlock, language)}
+            onClick={handleCopy}
             type="button"
           >
             <Copy size={18} />

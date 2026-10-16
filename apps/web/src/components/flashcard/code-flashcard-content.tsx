@@ -7,15 +7,11 @@ const SyntaxHighlighter = lazy(() => import("react-syntax-highlighter"));
 type CodeFlashCardContentProps = {
   codeBlock: string;
   language: string;
-  showCopyCodeBlockTooltip: boolean;
-  handleCopyCodeBlock: (codeBlock: string, language: string) => void;
 };
 
 export function CodeFlashCardContent({
   codeBlock,
   language,
-  showCopyCodeBlockTooltip,
-  handleCopyCodeBlock,
 }: CodeFlashCardContentProps) {
   return (
     <div className="relative col-span-1 sm:col-span-2">
@@ -34,13 +30,7 @@ export function CodeFlashCardContent({
           {codeBlock}
         </SyntaxHighlighter>
       </Suspense>
-      {showCopyCodeBlockTooltip && (
-        <CopyCodeBlockTooltip
-          codeBlock={codeBlock}
-          handleCopyCodeBlock={handleCopyCodeBlock}
-          language={language}
-        />
-      )}
+      <CopyCodeBlockTooltip codeBlock={codeBlock} language={language} />
     </div>
   );
 }

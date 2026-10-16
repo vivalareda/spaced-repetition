@@ -13,8 +13,6 @@ import {
 } from "@/components/ui/card";
 import { UsersWithoutData } from "@/components/user-without-data";
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut";
-import { useModalStore } from "@/hooks/use-modal-store";
-import { useStartReview } from "@/hooks/use-review-session";
 import { useUserData } from "@/hooks/use-user-data";
 
 const PREVIEW_CARDS_COUNT = 4;
@@ -79,8 +77,6 @@ function HomePageStatsCard({
 function Index() {
   const { t } = useTranslation();
   const userData = useUserData();
-  const { onOpen } = useModalStore();
-  const startReview = useStartReview();
   useKeyboardShortcut();
 
   if (!userData) {
@@ -104,18 +100,6 @@ function Index() {
       ? t("index.hero.subtitle.withReviews")
       : t("index.hero.subtitle.noReviews");
 
-  const handleCreateCard = () => {
-    onOpen("create-card");
-  };
-
-  const handleReviewDeck = () => {
-    onOpen("choose-deck");
-  };
-
-  const handleReviewCard = () => {
-    startReview(dueToday);
-  };
-
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-10 sm:px-8 lg:px-12">
       <section className="rounded-3xl border border-border/60 bg-white/80 p-8 shadow-shadow backdrop-blur">
@@ -130,12 +114,7 @@ function Index() {
             <p className="max-w-2xl text-base text-foreground/70">
               {heroSubtitle}
             </p>
-            <HomePageActionButtons
-              dueTodayCount={dueTodayCount}
-              handleCreateCard={handleCreateCard}
-              handleReviewCard={handleReviewCard}
-              handleReviewDeck={handleReviewDeck}
-            />
+            <HomePageActionButtons dueToday={dueToday} />
           </div>
           <HomePageStatsCard
             decks={decks}

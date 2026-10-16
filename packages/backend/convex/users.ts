@@ -1,4 +1,4 @@
-import type { Doc } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
 
@@ -31,6 +31,22 @@ export async function getCurrentUser(ctx: QueryCtx | MutationCtx) {
 export async function getCurrentUserId(ctx: QueryCtx | MutationCtx) {
   const user = await getCurrentUser(ctx);
   return user._id;
+}
+
+/** Loads a card or deck and throws unless it belongs to the logged-in user. */
+export async function getOwnedDoc<Table extends "cards" | "decks">(
+  ctx: QueryCtx | MutationCtx,
+  id: Id<Table>
+) {
+  const userId = await getCurrentUserId(ctx);
+  const doc = await ctx.db.get(id);
+  if (!doc) {
+    throw new Error("Not found");
+  }
+  if (doc.userId !== userId) {
+    throw new Error("Not authorized");
+  }
+  return doc;
 }
 
 export async function getUserByApiKey(

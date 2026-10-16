@@ -1,7 +1,5 @@
-import type { QUESTION_TYPES } from "@shared/types";
+import type { CardType } from "@shared/types";
 import { create } from "zustand";
-
-type QuestionType = (typeof QUESTION_TYPES)[number];
 
 type ModalType =
   | "create-card"
@@ -14,7 +12,7 @@ type ModalType =
 
 type OpenOptions = {
   /** Preselects the question type of the create-card modal. */
-  questionType?: QuestionType;
+  questionType?: CardType;
   /** The modal's primary action (e.g. confirm, after create); awaited if it returns a promise. */
   onSubmit?: () => unknown;
 };

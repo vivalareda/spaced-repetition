@@ -25,20 +25,18 @@ type Item = {
 
 type ComboboxProps = {
   items: Item[];
-  currentLanguage: string;
+  /** The selected item's value; the caller owns it. */
+  value: string;
   onSelect: (value: string) => void;
 };
 
-export function Combobox({ items, onSelect, currentLanguage }: ComboboxProps) {
+export function Combobox({ items, value, onSelect }: ComboboxProps) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(currentLanguage);
   const listboxId = useId();
 
-  const handleSelect = (currentValue: string) => {
-    const newValue = currentValue === value ? "" : currentValue;
-    setValue(newValue);
+  const handleSelect = (selected: string) => {
     setOpen(false);
-    onSelect(currentValue);
+    onSelect(selected);
   };
 
   return (
@@ -65,7 +63,6 @@ export function Combobox({ items, onSelect, currentLanguage }: ComboboxProps) {
             <CommandGroup>
               {items.map((item) => (
                 <CommandItem
-                  defaultValue={"typescript"}
                   key={item.value}
                   onSelect={handleSelect}
                   value={item.value}

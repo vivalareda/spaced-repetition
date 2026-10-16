@@ -1,9 +1,7 @@
 import type { McqFormData } from "@shared/types";
 import { CircleCheck, Plus, Trash2 } from "lucide-react";
-import type { ChangeEvent } from "react";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { DropdownMenu } from "@/components/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,83 +11,72 @@ const MAX_OPTIONS = 6;
 const LETTER_A_CODE_POINT = 65;
 
 type McqQuestionFormProps = {
-  formData: McqFormData;
-  userDecks: string[] | undefined;
-  onFieldChange: (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => void;
-  onDeckSelect: (deck: string) => void;
-  onOptionsChange: (options: string[]) => void;
-  onCorrectOptionChange: (index: number) => void;
+  form: McqFormData;
+  onChange: (patch: Partial<McqFormData>) => void;
 };
 
-export function McqQuestionForm({
-  formData,
-  userDecks,
-  onFieldChange,
-  onDeckSelect,
-  onOptionsChange,
-  onCorrectOptionChange,
-}: McqQuestionFormProps) {
+export function McqQuestionForm({ form, onChange }: McqQuestionFormProps) {
   const { t } = useTranslation();
-  const nextKeyId = useRef(formData.options.length);
-  const optionKeys = useRef<string[]>(
-    formData.options.map((_, i) => `opt-${i}`)
-  );
+  const nextKeyId = useRef(form.options.length);
+  const optionKeys = useRef<string[]>(form.options.map((_, i) => `opt-${i}`));
 
   const handleOptionChange = (index: number, value: string) => {
-    const updated = [...formData.options];
-    updated[index] = value;
-    onOptionsChange(updated);
+    const options = [...form.options];
+    options[index] = value;
+    onChange({ options });
   };
 
   const handleAddOption = () => {
-    if (formData.options.length >= MAX_OPTIONS) {
+    if (form.options.length >= MAX_OPTIONS) {
       return;
     }
     nextKeyId.current += 1;
     optionKeys.current = [...optionKeys.current, `opt-${nextKeyId.current}`];
-    onOptionsChange([...formData.options, ""]);
+    onChange({ options: [...form.options, ""] });
   };
 
   const handleRemoveOption = (index: number) => {
-    if (formData.options.length <= MIN_OPTIONS) {
+    if (form.options.length <= MIN_OPTIONS) {
       return;
     }
-    const updated = formData.options.filter((_, i) => i !== index);
     optionKeys.current = optionKeys.current.filter((_, i) => i !== index);
-    onOptionsChange(updated);
-
-    if (formData.correctOptionIndex === index) {
-      onCorrectOptionChange(0);
-    } else if (formData.correctOptionIndex > index) {
-      onCorrectOptionChange(formData.correctOptionIndex - 1);
+    // Keep pointing at the same option; removing the correct one resets to A.
+    const { correctOptionIndex } = form;
+    let newCorrectIndex = correctOptionIndex;
+    if (correctOptionIndex === index) {
+      newCorrectIndex = 0;
+    } else if (correctOptionIndex > index) {
+      newCorrectIndex = correctOptionIndex - 1;
     }
+    onChange({
+      options: form.options.filter((_, i) => i !== index),
+      correctOptionIndex: newCorrectIndex,
+    });
   };
 
   return (
-    <div className="grid gap-4">
+    <>
       <div className="grid gap-2">
         <Label htmlFor="question">{t("modals.createCard.questionLabel")}</Label>
         <Input
           id="question"
-          onChange={onFieldChange}
+          onChange={(event) => onChange({ question: event.target.value })}
           required
-          value={formData.question}
+          value={form.question}
         />
       </div>
 
       <div className="grid gap-2">
         <Label>{t("modals.createCard.optionsLabel")}</Label>
         <div className="flex flex-col gap-2">
-          {formData.options.map((option, index) => (
+          {form.options.map((option, index) => (
             <div
               className="flex items-center gap-2"
               key={optionKeys.current.at(index)}
             >
               <button
                 aria-label={
-                  formData.correctOptionIndex === index
+                  form.correctOptionIndex === index
                     ? t("modals.createCard.correctOptionSelected", {
                         index: index + 1,
                       })
@@ -98,14 +85,14 @@ export function McqQuestionForm({
                       })
                 }
                 className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-                  formData.correctOptionIndex === index
+                  form.correctOptionIndex === index
                     ? "border-green-500 bg-green-50 text-green-600"
                     : "border-border bg-secondary-background text-foreground/50 hover:border-green-300 hover:bg-green-50/50"
                 }`}
-                onClick={() => onCorrectOptionChange(index)}
+                onClick={() => onChange({ correctOptionIndex: index })}
                 type="button"
               >
-                {formData.correctOptionIndex === index ? (
+                {form.correctOptionIndex === index ? (
                   <CircleCheck className="h-4 w-4" />
                 ) : (
                   <span className="font-medium text-xs">
@@ -120,7 +107,7 @@ export function McqQuestionForm({
                 })}
                 value={option}
               />
-              {formData.options.length > MIN_OPTIONS && (
+              {form.options.length > MIN_OPTIONS && (
                 <Button
                   className="h-8 w-8 shrink-0 p-0"
                   onClick={() => handleRemoveOption(index)}
@@ -134,7 +121,7 @@ export function McqQuestionForm({
             </div>
           ))}
         </div>
-        {formData.options.length < MAX_OPTIONS && (
+        {form.options.length < MAX_OPTIONS && (
           <Button
             className="mt-1 w-fit"
             onClick={handleAddOption}
@@ -157,24 +144,11 @@ export function McqQuestionForm({
         </Label>
         <Input
           id="answer"
-          onChange={onFieldChange}
+          onChange={(event) => onChange({ answer: event.target.value })}
           placeholder={t("modals.createCard.answerExplanationPlaceholder")}
-          value={formData.answer}
+          value={form.answer}
         />
       </div>
-
-      <div className="grid gap-2">
-        <Label htmlFor="deck">{t("modals.createCard.deckLabel")}</Label>
-        <DropdownMenu
-          items={userDecks}
-          onSelect={onDeckSelect}
-          placeholder={
-            userDecks?.length === 0
-              ? t("modals.createCard.noDeckCreated")
-              : t("modals.createCard.selectDeck")
-          }
-        />
-      </div>
-    </div>
+    </>
   );
 }

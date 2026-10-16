@@ -7,7 +7,8 @@
     "serve": "vite preview",
     "dev": "vite dev --port=3001",
     "lint": "npx ultracite check",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.51.0",
@@ -63,6 +64,7 @@
     "@vitejs/plugin-react": "^5.0.4",
     "jsdom": "^26.0.0",
     "typescript": "catalog:",
+    "vitest": "^4.1.12",
     "web-vitals": "^5.0.3"
   }
 }

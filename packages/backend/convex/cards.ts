@@ -6,22 +6,11 @@ import {
 } from "@shared/types";
 import { type Infer, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
-import {
-  type MutationCtx,
-  mutation,
-  type QueryCtx,
-  query,
-} from "./_generated/server";
-import { getCurrentUserId, getUserByApiKey } from "./users";
+import { type MutationCtx, mutation, query } from "./_generated/server";
+import { cardContentFields, cardTypeValidator } from "./schema";
+import { getCurrentUserId, getOwnedDoc, getUserByApiKey } from "./users";
 
 const MIN_MCQ_OPTIONS = 2;
-
-const cardTypeValidator = v.union(
-  v.literal("text"),
-  v.literal("code"),
-  v.literal("image"),
-  v.literal("mcq")
-);
 
 const difficultyValidator = v.union(
   ...RATINGS.map((rating) => v.literal(rating))
@@ -36,22 +25,9 @@ const cardSideValidator = v.union(v.literal("question"), v.literal("answer"));
 /** Every field a client may set when creating a card, whatever its type. */
 const cardInputValidator = v.object({
   cardType: cardTypeValidator,
-
-  question: v.string(),
-  questionCode: v.optional(v.string()),
-  questionFile: v.optional(v.id("_storage")),
-
-  answer: v.string(),
-  answerCode: v.optional(v.string()),
-  answerFile: v.optional(v.id("_storage")),
-
-  options: v.optional(v.array(v.string())),
-  correctOptionIndex: v.optional(v.number()),
-
-  language: v.optional(v.string()),
+  ...cardContentFields,
   /** Name of an existing deck. Unknown names leave the card without a deck. */
   deck: v.optional(v.string()),
-  tags: v.optional(v.array(v.string())),
 });
 
 type CardInput = Infer<typeof cardInputValidator>;
@@ -214,21 +190,8 @@ export const createCodeCard = mutation({
 });
 
 // ============================================
-// Card lookup and ownership
+// Card lookup
 // ============================================
-
-/** Loads a card and throws unless it belongs to the logged-in user. */
-async function getOwnedCard(ctx: QueryCtx | MutationCtx, cardId: Id<"cards">) {
-  const userId = await getCurrentUserId(ctx);
-  const card = await ctx.db.get(cardId);
-  if (!card) {
-    throw new Error("Card not found");
-  }
-  if (card.userId !== userId) {
-    throw new Error("Not authorized to access this card");
-  }
-  return card;
-}
 
 /** Deletes a card together with any images it references in storage. */
 export async function deleteCardAndFiles(ctx: MutationCtx, card: Doc<"cards">) {
@@ -281,7 +244,7 @@ export const getImageUrl = query({
     side: cardSideValidator,
   },
   handler: async (ctx, args): Promise<string | null> => {
-    const card = await getOwnedCard(ctx, args.cardId);
+    const card = await getOwnedDoc(ctx, args.cardId);
     const file = args.side === "question" ? card.questionFile : card.answerFile;
     return file ? await ctx.storage.getUrl(file) : null;
   },
@@ -296,7 +259,7 @@ export const deleteCard = mutation({
     cardId: v.id("cards"),
   },
   handler: async (ctx, args) => {
-    const card = await getOwnedCard(ctx, args.cardId);
+    const card = await getOwnedDoc(ctx, args.cardId);
     await deleteCardAndFiles(ctx, card);
   },
 });
@@ -307,17 +270,9 @@ export const moveCardToDeck = mutation({
     deckId: v.optional(v.id("decks")),
   },
   handler: async (ctx, args) => {
-    const card = await getOwnedCard(ctx, args.cardId);
-
+    await getOwnedDoc(ctx, args.cardId);
     if (args.deckId) {
-      const deck = await ctx.db.get(args.deckId);
-      if (!deck) {
-        throw new Error("Deck not found");
-      }
-
-      if (deck.userId !== card.userId) {
-        throw new Error("Not authorized to move card to this deck");
-      }
+      await getOwnedDoc(ctx, args.deckId);
     }
 
     await ctx.db.patch(args.cardId, {
@@ -334,7 +289,7 @@ export const updateNextReviewDate = mutation({
     difficulty: difficultyValidator,
   },
   handler: async (ctx, args) => {
-    const card = await getOwnedCard(ctx, args.cardId);
+    const card = await getOwnedDoc(ctx, args.cardId);
     const now = Date.now();
 
     await ctx.db.patch(args.cardId, {

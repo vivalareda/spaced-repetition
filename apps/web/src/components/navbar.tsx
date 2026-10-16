@@ -1,5 +1,5 @@
 import { useClerk } from "@clerk/clerk-react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useConvexAuth } from "convex/react";
 import { Globe, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -35,81 +35,65 @@ function LanguageSelector() {
   );
 }
 
-function AuthenticatedNav({
-  onDashboardClick,
-  onHomeClick,
-  onSettingsClick,
-}: {
-  onDashboardClick: () => void;
-  onHomeClick: () => void;
-  onSettingsClick: () => void;
-}) {
+function AuthenticatedActions() {
   const { t } = useTranslation();
   const { signOut } = useClerk();
 
   return (
-    <div className="sticky top-0 z-10 flex h-24 w-full items-center bg-white px-6 shadow-lg">
-      <div className="hidden md:flex md:flex-1">
-        <LanguageSelector />
-      </div>
-
-      <div className="md:-translate-x-1/2 -ml-14 md:-ml-8 md:absolute md:left-1/2">
-        <Link to="/">
-          <img
-            alt="logo"
-            className="cursor-pointer"
-            height={300}
-            src="/logo.png"
-            width={300}
-          />
-        </Link>
-      </div>
-
-      <div className="flex flex-1 items-center justify-end gap-2">
-        <div className="hidden md:flex">
-          <Button onClick={onHomeClick} size="sm">
-            {t("navbar.home")}
-          </Button>
-        </div>
-        <Button onClick={onDashboardClick} size="sm">
-          {t("navbar.dashboard")}
+    <>
+      <div className="hidden md:flex">
+        <Button asChild size="sm">
+          <Link to="/">{t("navbar.home")}</Link>
         </Button>
-        <div className="hidden lg:flex">
-          <Button onClick={onSettingsClick} size="icon" variant="neutral">
+      </div>
+      <Button asChild size="sm">
+        <Link to="/dashboard">{t("navbar.dashboard")}</Link>
+      </Button>
+      <div className="hidden lg:flex">
+        <Button asChild size="icon" variant="neutral">
+          <Link to="/settings">
             <Settings className="h-4 w-4" />
-          </Button>
-        </div>
-        <Button onClick={() => signOut()} size="sm" variant="neutral">
-          {t("navbar.signOut")}
+          </Link>
         </Button>
       </div>
-    </div>
+      <Button onClick={() => signOut()} size="sm" variant="neutral">
+        {t("navbar.signOut")}
+      </Button>
+    </>
   );
 }
 
-function UnauthenticatedNav() {
-  const { onOpen } = useModalStore();
+function UnauthenticatedActions() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const { onOpen } = useModalStore();
 
-  const handleSignIn = () => {
-    onOpen("sign-in");
-  };
+  return (
+    <>
+      <Button onClick={() => onOpen("sign-in")} size="sm" variant="neutral">
+        {t("navbar.signIn")}
+      </Button>
+      <Button asChild size="sm">
+        <Link to="/sign-up">{t("navbar.signUp")}</Link>
+      </Button>
+    </>
+  );
+}
 
-  const handleSignUp = () => {
-    // onOpen("sign-up");
-    navigate({ to: "/sign-up" });
-  };
+export function Navbar() {
+  const { isAuthenticated, isLoading } = useConvexAuth();
+  const showSignedIn = isAuthenticated && !isLoading;
 
   return (
     <div className="sticky top-0 z-10 flex h-24 w-full items-center bg-white px-6 shadow-lg">
       <div className="hidden md:flex md:flex-1 md:gap-2">
         <LanguageSelector />
-        <Link to="/privacy">
-          <Button size="sm" variant="neutral">
-            Privacy
-          </Button>
-        </Link>
+        {!showSignedIn && (
+          <Link to="/privacy">
+            <Button size="sm" variant="neutral">
+              Privacy
+            </Button>
+          </Link>
+        )}
       </div>
 
       <div className="md:-translate-x-1/2 -ml-14 md:-ml-8 md:absolute md:left-1/2">
@@ -125,40 +109,8 @@ function UnauthenticatedNav() {
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-2">
-        <Button onClick={handleSignIn} size="sm" variant="neutral">
-          {t("navbar.signIn")}
-        </Button>
-        <Button onClick={handleSignUp} size="sm">
-          {t("navbar.signUp")}
-        </Button>
+        {showSignedIn ? <AuthenticatedActions /> : <UnauthenticatedActions />}
       </div>
     </div>
-  );
-}
-
-export function Navbar() {
-  const navigate = useNavigate();
-  const { isAuthenticated, isLoading } = useConvexAuth();
-
-  const handleDashboardClick = () => {
-    navigate({ to: "/dashboard" });
-  };
-
-  const handleHomeClick = () => {
-    navigate({ to: "/" });
-  };
-
-  const handleSettingsClick = () => {
-    navigate({ to: "/settings" });
-  };
-
-  return !isAuthenticated || isLoading ? (
-    <UnauthenticatedNav />
-  ) : (
-    <AuthenticatedNav
-      onDashboardClick={handleDashboardClick}
-      onHomeClick={handleHomeClick}
-      onSettingsClick={handleSettingsClick}
-    />
   );
 }
