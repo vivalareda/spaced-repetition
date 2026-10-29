@@ -34,6 +34,12 @@ export {
 } from "./src/image-validation";
 
 // ============================================
+// Review sessions
+// ============================================
+export type { ReviewQueue } from "./src/review-queue";
+export { completeReview, startReviewQueue } from "./src/review-queue";
+
+// ============================================
 // Scheduling
 // ============================================
 export type {

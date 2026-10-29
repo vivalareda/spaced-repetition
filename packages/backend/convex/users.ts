@@ -1,3 +1,4 @@
+import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
@@ -33,12 +34,25 @@ export async function getCurrentUserId(ctx: QueryCtx | MutationCtx) {
   return user._id;
 }
 
-/** Loads a card or deck and throws unless it belongs to the logged-in user. */
+/**
+ * The calling user: the owner of `apiKey` when one is given (API clients such
+ * as the MCP server), otherwise the logged-in user.
+ */
+export async function resolveUserId(
+  ctx: QueryCtx | MutationCtx,
+  apiKey: string | undefined
+) {
+  return apiKey === undefined
+    ? await getCurrentUserId(ctx)
+    : await getUserByApiKey(ctx, apiKey);
+}
+
+/** Loads a card or deck and throws unless it belongs to `userId`. */
 export async function getOwnedDoc<Table extends "cards" | "decks">(
   ctx: QueryCtx | MutationCtx,
+  userId: Id<"users">,
   id: Id<Table>
 ) {
-  const userId = await getCurrentUserId(ctx);
   const doc = await ctx.db.get(id);
   if (!doc) {
     throw new Error("Not found");
@@ -71,6 +85,12 @@ async function findApiKeyDoc(ctx: QueryCtx | MutationCtx, user: Doc<"users">) {
     .withIndex("by_user", (q) => q.eq("userId", user._id))
     .unique();
 }
+
+/**
+ * Optional argument of functions callable both by the logged-in web app and
+ * by API clients; see `resolveUserId`.
+ */
+export const apiKeyArg = { apiKey: v.optional(v.string()) };
 
 // ============================================
 // Public functions

@@ -16,14 +16,30 @@ import { createApp } from "./app.js";
 
 const API_KEY = "test-key";
 const AUTH = { authorization: `Bearer ${API_KEY}` };
-const SESSION_IDLE_TIMEOUT_MS = 1_800_000;
+const SHORT_IDLE_TIMEOUT_MS = 50;
 const UNAUTHORIZED = 401;
 const BAD_REQUEST = 400;
 const NOT_FOUND = 404;
 const TOOL_NAMES = [
   "create_code_flashcard",
+  "create_deck",
   "create_flashcard",
+  "create_image_flashcard",
   "create_mcq_flashcard",
+  "delete_card",
+  "delete_deck",
+  "get_card",
+  "get_next_card",
+  "get_study_overview",
+  "list_cards",
+  "list_decks",
+  "list_due_cards",
+  "move_card",
+  "rate_card",
+  "reveal_answer",
+  "start_review",
+  "update_card",
+  "update_deck",
 ];
 
 const mutation = vi.fn(async () => "card-1");
@@ -32,25 +48,36 @@ const client = { mutation } as unknown as ConvexHttpClient;
 let server: Server;
 let url: URL;
 
+/** Serves `createApp(client, options)` on a free port; returns its MCP URL. */
+async function listen(options?: Parameters<typeof createApp>[1]) {
+  const listening = createApp(client, options).listen(0);
+  await new Promise((resolve) => listening.once("listening", resolve));
+  const address = listening.address() as AddressInfo;
+  return {
+    server: listening,
+    url: new URL(`http://127.0.0.1:${address.port}/mcp`),
+  };
+}
+
+function stop(listening: Server) {
+  listening.closeAllConnections();
+  listening.close();
+}
+
 beforeAll(async () => {
-  server = createApp(client).listen(0);
-  await new Promise((resolve) => server.once("listening", resolve));
-  url = new URL(
-    `http://127.0.0.1:${(server.address() as AddressInfo).port}/mcp`
-  );
+  ({ server, url } = await listen());
 });
 
 afterAll(() => {
-  server.closeAllConnections();
-  server.close();
+  stop(server);
 });
 
 beforeEach(() => {
   mutation.mockClear();
 });
 
-async function connect() {
-  const transport = new StreamableHTTPClientTransport(url, {
+async function connect(mcpUrl = url) {
+  const transport = new StreamableHTTPClientTransport(mcpUrl, {
     requestInit: { headers: AUTH },
   });
   const mcp = new Client({ name: "test", version: "1.0.0" });
@@ -59,8 +86,8 @@ async function connect() {
 }
 
 // A raw tools/list request, used to probe whether a session id is still live.
-function listToolsRaw(sessionId: string) {
-  return fetch(url, {
+function listToolsRaw(sessionId: string, mcpUrl = url) {
+  return fetch(mcpUrl, {
     method: "POST",
     headers: {
       ...AUTH,
@@ -94,7 +121,7 @@ describe("HTTP gate", () => {
 });
 
 describe("card tools", () => {
-  it("exposes the three card-creation tools", async () => {
+  it("exposes the card-creation, review and library tools", async () => {
     const { mcp } = await connect();
     const { tools } = await mcp.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual(TOOL_NAMES);
@@ -160,14 +187,19 @@ describe("session lifecycle", () => {
   });
 
   it("closes sessions that stay idle", async () => {
-    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
-    let sessionId: string;
+    const shortLived = await listen({
+      sessionIdleTimeoutMs: SHORT_IDLE_TIMEOUT_MS,
+    });
     try {
-      ({ sessionId } = await connect());
-      vi.advanceTimersByTime(SESSION_IDLE_TIMEOUT_MS);
+      const { sessionId } = await connect(shortLived.url);
+      await new Promise((resolve) =>
+        setTimeout(resolve, SHORT_IDLE_TIMEOUT_MS * 2)
+      );
+      expect((await listToolsRaw(sessionId, shortLived.url)).status).toBe(
+        NOT_FOUND
+      );
     } finally {
-      vi.useRealTimers();
+      stop(shortLived.server);
     }
-    expect((await listToolsRaw(sessionId)).status).toBe(NOT_FOUND);
   });
 });

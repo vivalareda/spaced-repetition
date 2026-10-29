@@ -1,20 +1,48 @@
 import {
+  type Difficulty,
   INITIAL_SCHEDULING_STATE,
   RATINGS,
   schedule,
   validateImageFile,
 } from "@shared/types";
-import { type Infer, v } from "convex/values";
+import {
+  type Infer,
+  type PropertyValidators,
+  type VOptional,
+  v,
+} from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { type MutationCtx, mutation, query } from "./_generated/server";
-import { cardContentFields, cardTypeValidator } from "./schema";
-import { getCurrentUserId, getOwnedDoc, getUserByApiKey } from "./users";
+import {
+  cardContentFields,
+  cardTypeValidator,
+  editableCardContentFields,
+} from "./schema";
+import { resolveCardType, withCardType } from "./types/convexTypes";
+import {
+  apiKeyArg,
+  getOwnedDoc,
+  getUserByApiKey,
+  resolveUserId,
+} from "./users";
 
 const MIN_MCQ_OPTIONS = 2;
 
-const difficultyValidator = v.union(
+export const difficultyValidator = v.union(
   ...RATINGS.map((rating) => v.literal(rating))
 );
+
+/** `fields` with every validator made optional. */
+function partialFields<Fields extends PropertyValidators>(fields: Fields) {
+  return Object.fromEntries(
+    Object.entries(fields).map(([name, validator]) => [
+      name,
+      validator.isOptional === "optional" ? validator : v.optional(validator),
+    ])
+  ) as {
+    [Name in keyof Fields]: VOptional<Fields[Name]>;
+  };
+}
 
 const cardSideValidator = v.union(v.literal("question"), v.literal("answer"));
 
@@ -139,9 +167,10 @@ export const createCard = mutation({
     ...cardInputValidator.fields,
     // Optional for older clients; cards without a type are plain text.
     cardType: v.optional(cardTypeValidator),
+    ...apiKeyArg,
   },
-  handler: async (ctx, args) => {
-    const userId = await getCurrentUserId(ctx);
+  handler: async (ctx, { apiKey, ...args }) => {
+    const userId = await resolveUserId(ctx, apiKey);
     return await insertCard(ctx, userId, {
       ...args,
       cardType: args.cardType ?? "text",
@@ -207,13 +236,15 @@ export async function deleteCardAndFiles(ctx: MutationCtx, card: Doc<"cards">) {
 }
 
 export const get = query({
-  handler: async (ctx) => {
-    const userId = await getCurrentUserId(ctx);
+  args: apiKeyArg,
+  handler: async (ctx, args) => {
+    const userId = await resolveUserId(ctx, args.apiKey);
 
-    return await ctx.db
+    const cards = await ctx.db
       .query("cards")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
+    return cards.map(withCardType);
   },
 });
 
@@ -225,15 +256,17 @@ export const get = query({
 export const getDueToday = query({
   args: {
     now: v.number(),
+    ...apiKeyArg,
   },
   handler: async (ctx, args) => {
-    const userId = await getCurrentUserId(ctx);
-    return await ctx.db
+    const userId = await resolveUserId(ctx, args.apiKey);
+    const cards = await ctx.db
       .query("cards")
       .withIndex("by_user_due_date", (q) =>
         q.eq("userId", userId).lte("nextReviewDate", args.now)
       )
       .collect();
+    return cards.map(withCardType);
   },
 });
 
@@ -242,11 +275,25 @@ export const getImageUrl = query({
   args: {
     cardId: v.id("cards"),
     side: cardSideValidator,
+    ...apiKeyArg,
   },
   handler: async (ctx, args): Promise<string | null> => {
-    const card = await getOwnedDoc(ctx, args.cardId);
+    const userId = await resolveUserId(ctx, args.apiKey);
+    const card = await getOwnedDoc(ctx, userId, args.cardId);
     const file = args.side === "question" ? card.questionFile : card.answerFile;
     return file ? await ctx.storage.getUrl(file) : null;
+  },
+});
+
+/** One card the caller owns, with everything needed to show or edit it. */
+export const getCard = query({
+  args: {
+    cardId: v.id("cards"),
+    ...apiKeyArg,
+  },
+  handler: async (ctx, args) => {
+    const userId = await resolveUserId(ctx, args.apiKey);
+    return withCardType(await getOwnedDoc(ctx, userId, args.cardId));
   },
 });
 
@@ -254,12 +301,33 @@ export const getImageUrl = query({
 // Card updates
 // ============================================
 
+/**
+ * Replaces the given content fields of a card. The result must still be a
+ * valid card of its type, e.g. an MCQ's correct index must stay in range.
+ */
+export const updateCard = mutation({
+  args: {
+    cardId: v.id("cards"),
+    ...partialFields(editableCardContentFields),
+    ...apiKeyArg,
+  },
+  handler: async (ctx, { cardId, apiKey, ...changes }) => {
+    const userId = await resolveUserId(ctx, apiKey);
+    const card = await getOwnedDoc(ctx, userId, cardId);
+    const cardType = resolveCardType(card);
+    await validateCardInput(ctx, { ...card, ...changes, cardType });
+    await ctx.db.patch(cardId, { ...changes, cardType });
+  },
+});
+
 export const deleteCard = mutation({
   args: {
     cardId: v.id("cards"),
+    ...apiKeyArg,
   },
   handler: async (ctx, args) => {
-    const card = await getOwnedDoc(ctx, args.cardId);
+    const userId = await resolveUserId(ctx, args.apiKey);
+    const card = await getOwnedDoc(ctx, userId, args.cardId);
     await deleteCardAndFiles(ctx, card);
   },
 });
@@ -268,11 +336,13 @@ export const moveCardToDeck = mutation({
   args: {
     cardId: v.id("cards"),
     deckId: v.optional(v.id("decks")),
+    ...apiKeyArg,
   },
   handler: async (ctx, args) => {
-    await getOwnedDoc(ctx, args.cardId);
+    const userId = await resolveUserId(ctx, args.apiKey);
+    await getOwnedDoc(ctx, userId, args.cardId);
     if (args.deckId) {
-      await getOwnedDoc(ctx, args.deckId);
+      await getOwnedDoc(ctx, userId, args.deckId);
     }
 
     await ctx.db.patch(args.cardId, {
@@ -283,19 +353,28 @@ export const moveCardToDeck = mutation({
   },
 });
 
+/** Reschedules `card` after it is reviewed with `rating` now. */
+export async function rateCard(
+  ctx: MutationCtx,
+  card: Doc<"cards">,
+  rating: Difficulty
+) {
+  const now = Date.now();
+  const next = schedule(card, rating, now);
+  await ctx.db.patch(card._id, { ...next, lastReviewedAt: now });
+  return next;
+}
+
 export const updateNextReviewDate = mutation({
   args: {
     cardId: v.id("cards"),
     difficulty: difficultyValidator,
+    ...apiKeyArg,
   },
   handler: async (ctx, args) => {
-    const card = await getOwnedDoc(ctx, args.cardId);
-    const now = Date.now();
-
-    await ctx.db.patch(args.cardId, {
-      ...schedule(card, args.difficulty, now),
-      lastReviewedAt: now,
-    });
+    const userId = await resolveUserId(ctx, args.apiKey);
+    const card = await getOwnedDoc(ctx, userId, args.cardId);
+    await rateCard(ctx, card, args.difficulty);
   },
 });
 
@@ -303,9 +382,10 @@ export const generateUploadUrl = mutation({
   args: {
     fileSize: v.number(),
     fileType: v.string(),
+    ...apiKeyArg,
   },
   handler: async (ctx, args) => {
-    await getCurrentUserId(ctx);
+    await resolveUserId(ctx, args.apiKey);
 
     // Early rejection based on what the client declares; the stored file is
     // re-checked in `insertCard` since these values can't be trusted.

@@ -22,3 +22,8 @@ export function resolveCardType(card: Card): CardType {
   }
   return "text";
 }
+
+/** `card` with its `cardType` always set, resolving it for legacy cards. */
+export function withCardType(card: Card) {
+  return { ...card, cardType: resolveCardType(card) };
+}

@@ -5,15 +5,19 @@
   "scripts": {
     "dev": "convex dev",
     "dev:setup": "convex dev --configure --until-success",
-    "check-types": "tsc --noEmit -p convex"
+    "check-types": "tsc --noEmit -p convex",
+    "test": "vitest run"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
+    "@shared/types": "workspace:*",
     "@types/node": "^24.3.0",
+    "convex-test": "^0.0.41",
     "typescript": "catalog:",
-    "@shared/types": "workspace:*"
+    "vitest": "^4.1.12"
   },
   "dependencies": {
     "convex": "catalog:"
