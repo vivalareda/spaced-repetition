@@ -59,6 +59,9 @@ importers:
       express:
         specifier: ^5.1.0
         version: 5.1.0
+      undici:
+        specifier: ^7.16.0
+        version: 7.16.0
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -80,7 +83,7 @@ importers:
         version: 5.8.3
       vitest:
         specifier: ^4.1.12
-        version: 4.1.12(@types/node@24.8.1)(jsdom@26.1.0)(vite@7.1.10(@types/node@24.8.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
+        version: 4.1.12(@edge-runtime/vm@5.0.0)(@types/node@24.8.1)(jsdom@26.1.0)(vite@7.1.10(@types/node@24.8.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
 
   apps/native:
     dependencies:
@@ -343,7 +346,7 @@ importers:
         version: 5.8.3
       vitest:
         specifier: ^4.1.12
-        version: 4.1.12(@types/node@24.8.1)(jsdom@26.1.0)(vite@7.1.10(@types/node@24.8.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
+        version: 4.1.12(@edge-runtime/vm@5.0.0)(@types/node@24.8.1)(jsdom@26.1.0)(vite@7.1.10(@types/node@24.8.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
       web-vitals:
         specifier: ^5.0.3
         version: 5.1.0
@@ -354,15 +357,24 @@ importers:
         specifier: 'catalog:'
         version: 1.27.5(@clerk/clerk-react@5.53.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)
     devDependencies:
+      '@edge-runtime/vm':
+        specifier: ^5.0.0
+        version: 5.0.0
       '@shared/types':
         specifier: workspace:*
         version: link:../types
       '@types/node':
         specifier: ^24.3.0
         version: 24.8.1
+      convex-test:
+        specifier: ^0.0.41
+        version: 0.0.41(convex@1.27.5(@clerk/clerk-react@5.53.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0))
       typescript:
         specifier: 'catalog:'
         version: 5.8.3
+      vitest:
+        specifier: ^4.1.12
+        version: 4.1.12(@edge-runtime/vm@5.0.0)(@types/node@24.8.1)(jsdom@26.1.0)(vite@7.1.10(@types/node@24.8.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
 
   packages/types:
     devDependencies:
@@ -377,7 +389,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^4.1.12
-        version: 4.1.12(@types/node@22.18.11)(jsdom@26.1.0)(vite@7.1.10(@types/node@22.18.11)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
+        version: 4.1.12(@edge-runtime/vm@5.0.0)(@types/node@22.18.11)(jsdom@26.1.0)(vite@7.1.10(@types/node@22.18.11)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
 
 packages:
 
@@ -1048,6 +1060,14 @@ packages:
 
   '@csstools/css-tokenizer@3.0.4':
     resolution: {integrity: sha512-Vd/9EVDiu6PPJt9yAh6roZP6El1xHrdvIVGjyBsHR0RYwNHgL7FJPyIIW4fANJNG6FtyZfvlRPpFI4ZM/lubvw==}
+    engines: {node: '>=18'}
+
+  '@edge-runtime/primitives@6.0.0':
+    resolution: {integrity: sha512-FqoxaBT+prPBHBwE1WXS1ocnu/VLTQyZ6NMUBAdbP7N2hsFTTxMC/jMu2D/8GAlMQfxeuppcPuCUk/HO3fpIvA==}
+    engines: {node: '>=18'}
+
+  '@edge-runtime/vm@5.0.0':
+    resolution: {integrity: sha512-NKBGBSIKUG584qrS1tyxVpX/AKJKQw5HgjYEnPLC0QsTw79JrGn+qUr8CXFb955Iy7GUdiiUv1rJ6JBGvaKb6w==}
     engines: {node: '>=18'}
 
   '@egjs/hammerjs@2.0.17':
@@ -3683,6 +3703,11 @@ packages:
       zod:
         optional: true
 
+  convex-test@0.0.41:
+    resolution: {integrity: sha512-GPHeYFOi70n7UtW0eCEQFVhzl/+m8PvbWkDCbKpHLybI1MrScf4sVpGeM0cC2qmtxiduxa2nLPbehPalhh9oyQ==}
+    peerDependencies:
+      convex: ^1.16.4
+
   convex@1.27.5:
     resolution: {integrity: sha512-6YU/AVPnoNdAaJABKBI9c5IqRSKsow/c4yo/ntaOWtd8Dff2P2zaImA/ougICfPgTuTvjKRbgkxk6lJhODzb4g==}
     engines: {node: '>=18.0.0', npm: '>=7.0.0'}
@@ -4990,9 +5015,6 @@ packages:
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
     hasBin: true
-
-  magic-string@0.30.19:
-    resolution: {integrity: sha512-2N21sPY9Ws53PZvsEpVtNuSW+ScYbQdp4b9qUaL+9QkHUrGFKo56Lg9Emg5s9V/qrtNBmiR01sYhUOwu3H+VOw==}
 
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
@@ -6309,9 +6331,6 @@ packages:
 
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
-
-  tinyexec@1.0.1:
-    resolution: {integrity: sha512-5uC6DDlmeqiOwCPmK9jMSdOuZTh8bU39Ys6yidB+UTt5hfZUPGAypSgFRiEp+jbi9qH40BLDvy85jIU88wKSqw==}
 
   tinyexec@1.3.1:
     resolution: {integrity: sha512-GCvB3aoys96IuDFBMcTB46JOR6mdMtAToqwiW8JlWhsoh1mhHi/xn9ss/Dg7N555GiJyEt2qzoG/NHCwM6h1EA==}
@@ -7685,6 +7704,12 @@ snapshots:
       '@csstools/css-tokenizer': 3.0.4
 
   '@csstools/css-tokenizer@3.0.4': {}
+
+  '@edge-runtime/primitives@6.0.0': {}
+
+  '@edge-runtime/vm@5.0.0':
+    dependencies:
+      '@edge-runtime/primitives': 6.0.0
 
   '@egjs/hammerjs@2.0.17':
     dependencies:
@@ -9540,7 +9565,7 @@ snapshots:
       enhanced-resolve: 5.18.3
       jiti: 2.6.1
       lightningcss: 1.30.1
-      magic-string: 0.30.19
+      magic-string: 0.30.21
       source-map-js: 1.2.1
       tailwindcss: 4.1.14
 
@@ -10800,6 +10825,10 @@ snapshots:
       react: 19.1.0
       typescript: 5.8.3
       zod: 4.1.12
+
+  convex-test@0.0.41(convex@1.27.5(@clerk/clerk-react@5.53.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)):
+    dependencies:
+      convex: 1.27.5(@clerk/clerk-react@5.53.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)
 
   convex@1.27.5(@clerk/clerk-react@5.53.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0):
     dependencies:
@@ -12094,10 +12123,6 @@ snapshots:
 
   lz-string@1.5.0: {}
 
-  magic-string@0.30.19:
-    dependencies:
-      '@jridgewell/sourcemap-codec': 1.5.5
-
   magic-string@0.30.21:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -12629,7 +12654,7 @@ snapshots:
       consola: 3.4.2
       pathe: 2.0.3
       pkg-types: 2.3.0
-      tinyexec: 1.0.1
+      tinyexec: 1.3.1
 
   oauth4webapi@3.8.2: {}
 
@@ -13742,8 +13767,6 @@ snapshots:
 
   tinybench@2.9.0: {}
 
-  tinyexec@1.0.1: {}
-
   tinyexec@1.3.1: {}
 
   tinyglobby@0.2.15:
@@ -14044,7 +14067,7 @@ snapshots:
     optionalDependencies:
       vite: 7.1.10(@types/node@24.8.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1)
 
-  vitest@4.1.12(@types/node@22.18.11)(jsdom@26.1.0)(vite@7.1.10(@types/node@22.18.11)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1)):
+  vitest@4.1.12(@edge-runtime/vm@5.0.0)(@types/node@22.18.11)(jsdom@26.1.0)(vite@7.1.10(@types/node@22.18.11)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1)):
     dependencies:
       '@vitest/expect': 4.1.12
       '@vitest/mocker': 4.1.12(vite@7.1.10(@types/node@22.18.11)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
@@ -14067,12 +14090,13 @@ snapshots:
       vite: 7.1.10(@types/node@22.18.11)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
+      '@edge-runtime/vm': 5.0.0
       '@types/node': 22.18.11
       jsdom: 26.1.0
     transitivePeerDependencies:
       - msw
 
-  vitest@4.1.12(@types/node@24.8.1)(jsdom@26.1.0)(vite@7.1.10(@types/node@24.8.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1)):
+  vitest@4.1.12(@edge-runtime/vm@5.0.0)(@types/node@24.8.1)(jsdom@26.1.0)(vite@7.1.10(@types/node@24.8.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1)):
     dependencies:
       '@vitest/expect': 4.1.12
       '@vitest/mocker': 4.1.12(vite@7.1.10(@types/node@24.8.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
@@ -14095,6 +14119,7 @@ snapshots:
       vite: 7.1.10(@types/node@24.8.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
+      '@edge-runtime/vm': 5.0.0
       '@types/node': 24.8.1
       jsdom: 26.1.0
     transitivePeerDependencies:

@@ -1,4 +1,10 @@
-import { type Difficulty, RATINGS } from "@shared/types";
+import {
+  completeReview,
+  type Difficulty,
+  RATINGS,
+  type ReviewQueue,
+  startReviewQueue,
+} from "@shared/types";
 import { api } from "@spaced-repetition-monorepo/backend/convex/_generated/api";
 import type { Card } from "@spaced-repetition-monorepo/backend/convex/types/convexTypes";
 import { useNavigate } from "@tanstack/react-router";
@@ -19,25 +25,10 @@ type CardId = Card["_id"];
  * Only card ids are stored (in sessionStorage), so a page refresh resumes the
  * session and rebuilds it from fresh card data.
  */
-type SessionState = {
-  /** Cards still to review, in order. The first one is the current card. */
-  remaining: CardId[];
-  /** Cards already sent back to the end of the queue after an "again". */
-  requeued: CardId[];
-  /** Number of ratings given so far in this session. */
-  reviewedCount: number;
-};
-
-type SessionStore = SessionState & {
+type SessionStore = ReviewQueue<CardId> & {
   start: (cardIds: CardId[]) => void;
   /** Removes a rated card from the queue; an "again" card comes back once, at the end. */
   complete: (cardId: CardId, rating: Difficulty) => void;
-};
-
-const EMPTY_SESSION: SessionState = {
-  remaining: [],
-  requeued: [],
-  reviewedCount: 0,
 };
 
 const SESSION_STORAGE_KEY = "review-session";
@@ -45,21 +36,10 @@ const SESSION_STORAGE_KEY = "review-session";
 const useSessionStore = create<SessionStore>()(
   persist(
     (set) => ({
-      ...EMPTY_SESSION,
-      start: (cardIds) => set({ ...EMPTY_SESSION, remaining: cardIds }),
+      ...startReviewQueue<CardId>([]),
+      start: (cardIds) => set(startReviewQueue(cardIds)),
       complete: (cardId, rating) =>
-        set((state) => {
-          const remaining = state.remaining.filter((id) => id !== cardId);
-          const shouldRequeue =
-            rating === "again" && !state.requeued.includes(cardId);
-          return {
-            remaining: shouldRequeue ? [...remaining, cardId] : remaining,
-            requeued: shouldRequeue
-              ? [...state.requeued, cardId]
-              : state.requeued,
-            reviewedCount: state.reviewedCount + 1,
-          };
-        }),
+        set((state) => completeReview(state, cardId, rating)),
     }),
     {
       name: SESSION_STORAGE_KEY,

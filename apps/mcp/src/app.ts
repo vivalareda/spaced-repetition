@@ -3,12 +3,15 @@ import type { ConvexHttpClient } from "convex/browser";
 import cors from "cors";
 import express, { type Response } from "express";
 import { resolveTransport } from "./sessions.js";
-import { createMcpServer, parseBearerToken } from "./tools.js";
+import { parseBearerToken } from "./tool-helpers.js";
+import { createMcpServer } from "./tools.js";
 
 const UNAUTHORIZED_STATUS = 401;
 const INTERNAL_SERVER_ERROR_STATUS = 500;
 const JSON_RPC_BAD_REQUEST_CODE = -32_000;
 const JSON_RPC_INTERNAL_ERROR_CODE = -32_603;
+// Fits create_image_flashcard with two 5 MB images as base64 (+33%).
+const MAX_REQUEST_BODY = "16mb";
 
 function sendJsonRpcError(
   res: Response,
@@ -23,8 +26,16 @@ function sendJsonRpcError(
   });
 }
 
+type AppOptions = {
+  /** How long a session may go without requests before it is closed. */
+  sessionIdleTimeoutMs?: number;
+};
+
 /** Builds the HTTP app serving MCP at `/mcp`, backed by `client`. */
-export function createApp(client: ConvexHttpClient) {
+export function createApp(
+  client: ConvexHttpClient,
+  { sessionIdleTimeoutMs }: AppOptions = {}
+) {
   const app = express();
   app.use(
     cors({
@@ -39,7 +50,7 @@ export function createApp(client: ConvexHttpClient) {
       ],
     })
   );
-  app.use(express.json());
+  app.use(express.json({ limit: MAX_REQUEST_BODY }));
 
   app.use((req, res, next) => {
     if (!parseBearerToken(req.headers.authorization)) {
@@ -57,7 +68,8 @@ export function createApp(client: ConvexHttpClient) {
       const resolved = await resolveTransport(
         req.headers["mcp-session-id"] as string | undefined,
         req.body,
-        () => createMcpServer(client)
+        () => createMcpServer(client),
+        sessionIdleTimeoutMs
       );
       if ("errorStatus" in resolved) {
         sendJsonRpcError(

@@ -6,21 +6,25 @@ export const cardTypeValidator = v.union(
   ...CARD_TYPES.map((cardType) => v.literal(cardType))
 );
 
-/** A card's content: what clients provide when creating one. */
-export const cardContentFields = {
+/** A card's content that can be edited after creation: all but its images. */
+export const editableCardContentFields = {
   question: v.string(),
   questionCode: v.optional(v.string()),
-  questionFile: v.optional(v.id("_storage")),
-
   answer: v.string(),
   answerCode: v.optional(v.string()),
-  answerFile: v.optional(v.id("_storage")),
 
   options: v.optional(v.array(v.string())),
   correctOptionIndex: v.optional(v.number()),
 
   language: v.optional(v.string()),
   tags: v.optional(v.array(v.string())),
+};
+
+/** A card's content: what clients provide when creating one. */
+export const cardContentFields = {
+  ...editableCardContentFields,
+  questionFile: v.optional(v.id("_storage")),
+  answerFile: v.optional(v.id("_storage")),
 };
 
 export default defineSchema({
@@ -51,6 +55,15 @@ export default defineSchema({
     userId: v.id("users"),
     deckName: v.string(),
     deckDescription: v.optional(v.string()),
+  }).index("by_user", ["userId"]),
+
+  // The review session of API clients (the web app keeps its own in the
+  // browser). One per user; see `reviews.ts`.
+  reviewSessions: defineTable({
+    userId: v.id("users"),
+    remaining: v.array(v.id("cards")),
+    requeued: v.array(v.id("cards")),
+    reviewedCount: v.number(),
   }).index("by_user", ["userId"]),
 
   apiKeys: defineTable({
